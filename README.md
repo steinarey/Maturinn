@@ -56,6 +56,7 @@ All config is environment variables (see `.env.example`).
 | `HOME_ASSISTANT_URL` | empty | e.g. `http://192.168.1.10:8123`. With the token set, the shopping list feature is on |
 | `HOME_ASSISTANT_TOKEN` | empty | Long-lived access token |
 | `HOME_ASSISTANT_TODO` | empty | Default list entity, e.g. `todo.shopping_list` |
+| `HOME_ASSISTANT_TLS_HOSTNAME` | empty | Name to verify HA's https certificate against when `HOME_ASSISTANT_URL` uses an IP (e.g. a DuckDNS certificate that only resolves from outside) |
 
 ### Database permissions
 

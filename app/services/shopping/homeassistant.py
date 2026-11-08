@@ -14,16 +14,19 @@ PREFERRED = "todo.shopping_list"  # the built-in Shopping List integration
 
 
 class HomeAssistantTodo:
-    def __init__(self, url: str, token: str, transport: httpx.BaseTransport | None = None):
+    def __init__(self, url: str, token: str, transport: httpx.BaseTransport | None = None,
+                 tls_hostname: str | None = None):
         self.client = httpx.Client(
             base_url=url.rstrip("/"), timeout=15, transport=transport,
             headers={"Authorization": f"Bearer {token}"},
         )
         self._features: dict[str, int] = {}
+        # Certificate is checked against this name (sent as SNI) instead of the URL's host.
+        self._extensions = {"sni_hostname": tls_hostname} if tls_hostname else {}
 
     def _request(self, method: str, url: str, **kw):
         try:
-            r = self.client.request(method, url, **kw)
+            r = self.client.request(method, url, extensions=self._extensions, **kw)
         except httpx.HTTPError as e:
             raise ShoppingError(f"Home Assistant unreachable ({e.__class__.__name__}): {e}") from e
         if r.status_code == 401:

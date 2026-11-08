@@ -94,6 +94,19 @@ def test_ha_lists_items_and_add():
     ]
 
 
+def test_ha_tls_hostname_sent_as_sni():
+    seen = []
+
+    def handler(req):
+        seen.append(req.extensions.get("sni_hostname"))
+        return httpx.Response(200, json={"message": "API running."})
+
+    HomeAssistantTodo("https://192.168.1.2:8123", "T", transport=httpx.MockTransport(handler),
+                      tls_hostname="ha.example.org").check()
+    ha(handler).check()
+    assert seen == ["ha.example.org", None]
+
+
 def test_ha_errors():
     with pytest.raises(ShoppingError, match="token"):
         ha(lambda req: httpx.Response(401)).lists()
@@ -126,14 +139,14 @@ def test_settings_not_configured(client, session):
 
 
 def test_settings_shows_lists(configured, client, monkeypatch):
-    monkeypatch.setattr(shop_router, "HomeAssistantTodo", lambda url, token: ha(
+    monkeypatch.setattr(shop_router, "HomeAssistantTodo", lambda url, token, **kw: ha(
         lambda req: httpx.Response(200, json=STATES if req.url.path == "/api/states" else {"message": "API running."})))
     r = client.get("/settings")
     assert "todo.shopping_list" in r.text and "Verkefni" in r.text and "sun.sun" not in r.text
 
 
 def test_settings_shows_error(configured, client, monkeypatch):
-    monkeypatch.setattr(shop_router, "HomeAssistantTodo", lambda url, token: ha(lambda req: httpx.Response(401)))
+    monkeypatch.setattr(shop_router, "HomeAssistantTodo", lambda url, token, **kw: ha(lambda req: httpx.Response(401)))
     assert "rejected the access token" in client.get("/settings").text
 
 

@@ -20,7 +20,8 @@ def get_shopping_list() -> ShoppingList:
     s = get_settings()
     if not s.shopping_configured:
         raise HTTPException(404)
-    return HomeAssistantTodo(s.home_assistant_url, s.home_assistant_token)
+    return HomeAssistantTodo(s.home_assistant_url, s.home_assistant_token,
+                             tls_hostname=s.home_assistant_tls_hostname)
 
 
 def _find(lists: list[ShoppingListInfo], list_id: str | None) -> ShoppingListInfo | None:

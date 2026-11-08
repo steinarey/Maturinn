@@ -29,9 +29,13 @@ class Settings(BaseSettings):
     home_assistant_url: str | None = None  # e.g. http://homeassistant.local:8123
     home_assistant_token: str | None = None  # long-lived access token
     home_assistant_todo: str | None = None  # default list, e.g. todo.shopping_list
+    # When HA is reached by IP but its https certificate is for a name (e.g. a DuckDNS domain
+    # that doesn't resolve locally): verify the certificate against this name instead.
+    home_assistant_tls_hostname: str | None = None
 
     @field_validator("provider", "llm", "anthropic_api_key", "openai_api_key", "gemini_api_key",
-                     "home_assistant_url", "home_assistant_token", "home_assistant_todo", mode="before")
+                     "home_assistant_url", "home_assistant_token", "home_assistant_todo",
+                     "home_assistant_tls_hostname", mode="before")
     @classmethod
     def _blank_is_none(cls, v):
         return None if isinstance(v, str) and not v.strip() else v

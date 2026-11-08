@@ -6,7 +6,7 @@ FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL 17, server-rendered with Jinja2 + 
 What works now: write/edit recipes with structured ingredients, "you'll need" items and steps with photos;
 a read view for cooking; search across both languages with has/without-ingredient filters; an ingredient
 admin page for names, aliases and groups; import from a URL, pasted text or photos via an LLM; links between recipes; sending ingredients to a
-Microsoft To Do shopping list; dark (default) and light themes; JSON API.
+Home Assistant shopping list; dark (default) and light themes; JSON API.
 See [FEATURES.md](FEATURES.md) for the running list.
 
 ## Run locally
@@ -53,10 +53,9 @@ All config is environment variables (see `.env.example`).
 | `LLM` | empty | Model name for that provider, e.g. `claude-haiku-5-5`, `gpt-5.1-mini`, `gemini-3.7-flash`. For Anthropic, short forms like `haiku-5.5` are expanded to `claude-haiku-5-5` |
 | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY` | empty | Only the key for the chosen `PROVIDER` is used |
 | `WORKER_ENABLED` | `true` | Background import worker (tests turn it off) |
-| `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | empty | Azure app registration for the To Do shopping list. Both set = feature on |
-| `MICROSOFT_AUTHORITY` | `https://login.microsoftonline.com/common` | `common` allows personal accounts (consumer To Do) and work/school |
-| `MICROSOFT_SCOPES` | `Tasks.ReadWrite User.Read` | `offline_access` is added automatically |
-| `MICROSOFT_REDIRECT_URI` | empty | Empty = `<app URL>/settings/microsoft/callback`. Set it when the app sits behind an https proxy |
+| `HOME_ASSISTANT_URL` | empty | e.g. `http://192.168.1.10:8123`. With the token set, the shopping list feature is on |
+| `HOME_ASSISTANT_TOKEN` | empty | Long-lived access token |
+| `HOME_ASSISTANT_TODO` | empty | Default list entity, e.g. `todo.shopping_list` |
 
 ### Database permissions
 
@@ -81,7 +80,7 @@ Only the app container runs on Unraid; it uses your existing Postgres 17 server.
    - Network: bridge, port `8000` → host port of your choice (e.g. `8420`)
    - Path: container `/data/photos` → host `/mnt/user/appdata/maturinn/photos`
    - Variables: `DATABASE_URL=postgresql://maturinn:…@<pg-host>:5432/maturinn`, optionally `DB_SCHEMA`, `DEFAULT_LANG`,
-     the LLM variables and the `MICROSOFT_*` variables (see *Shopping list* for the redirect URI on Unraid)
+     the LLM variables and the `HOME_ASSISTANT_*` variables
 4. The container runs as uid 1000. Make the photos share writable for it:
    `chown -R 1000:1000 /mnt/user/appdata/maturinn/photos` (or `99:100` and adjust the Dockerfile `useradd` if you
    prefer Unraid's `nobody:users`).
@@ -151,34 +150,24 @@ Steps, descriptions and ingredient notes can link to another recipe with `[label
 becomes the label. The read view renders them as links, and a linked recipe shows "Notað í" (used in) with the
 recipes that link to it. A link to a deleted recipe shows as plain text.
 
-## Shopping list (Microsoft To Do)
+## Shopping list (Home Assistant)
 
 The read view has a **Shopping list** button. It opens a dialog with one line per ingredient, scaled to the servings
 currently set in the scaler. An ingredient used twice is merged ("Sykur (300 g + 1 msk)"). Items whose name is already
-an open task on the chosen list are unchecked. The checked ones are added as To Do tasks with "From recipe: <title>" in
-the task note. The last list used becomes the default.
+an open item on the chosen list are unchecked. The checked ones are added with `todo.add_item`; lists that support
+descriptions (e.g. Local To-do) also get "From recipe: <title>". Any `todo.*` entity can be chosen; the last one used is
+remembered per browser.
 
-Setup, once:
+Setup:
 
-1. **Azure app registration** (portal.azure.com → App registrations):
-   - Supported account types: *Accounts in any organizational directory and personal Microsoft accounts*
-     (consumer To Do lives on personal accounts).
-   - Platform **Web**, redirect URI `http://localhost:8000/settings/microsoft/callback` (the Settings page shows the
-     exact URI this app will send).
-   - Certificates & secrets → new client secret → `MICROSOFT_CLIENT_SECRET`.
-   - API permissions (delegated): `Tasks.ReadWrite`, `User.Read`.
-2. Set the `MICROSOFT_*` variables and restart.
-3. Open **Settings** (⚙ in the header) → **Connect Microsoft account**, sign in, pick the default list.
+1. In Home Assistant, create a user for the app (Settings → People → add person, allow login, not admin), log in as it,
+   and create a **long-lived access token** under the user's profile → Security.
+2. Set `HOME_ASSISTANT_URL` (as reachable from the container) and `HOME_ASSISTANT_TOKEN`, optionally
+   `HOME_ASSISTANT_TODO`, and restart. **Settings** (⚙ in the header) shows whether the connection works and which lists
+   it found.
 
-Sign-in uses MSAL's authorization code flow with PKCE, with the result posted back (`form_post`). The token cache
-(holding the refresh token) is stored in table `microsoft_account`, encrypted with a key derived from the client
-secret. Rotating the secret therefore means connecting again. A personal account's refresh token expires after about
-90 days without use; the dialog then asks you to reconnect.
-
-**On Unraid:** Azure only accepts `http` redirect URIs for `localhost`, so `http://<unraid-ip>:8420/...` can't be
-registered. Either connect once through an SSH tunnel (`ssh -L 8000:localhost:8420 root@unraid`, then open
-`http://localhost:8000/settings`; the token is stored in the database and works from any address afterwards), or
-put the app behind https and set `MICROSOFT_REDIRECT_URI` to that URL.
+The app only calls `GET /api/states`, `todo.get_items` and `todo.add_item`. Added items are normal HA to-do changes, so
+automations can trigger on them (e.g. on the list entity's state, which is the number of open items).
 
 ## Ingredient normalization
 
@@ -200,8 +189,8 @@ ingredients can be merged on the Ingredients page.
 app/
   main.py, config.py, db.py, i18n.py, web.py
   models/recipe.py           all tables (incl. translation, nutrition and import tables for later phases)
-  services/                  recipes, ingredients, search, photos, importer, links; llm/, shopping/ (To Do), nutrition/ (stub)
-  routers/                   pages (HTML), imports, shopping (settings + To Do), ingredients (admin), api (JSON), health
+  services/                  recipes, ingredients, search, photos, importer, links; llm/, shopping/ (Home Assistant), nutrition/ (stub)
+  routers/                   pages (HTML), imports, shopping (settings + shopping list), ingredients (admin), api (JSON), health
   templates/, static/, i18n/
 alembic/versions/            migrations
 tests/                       run against real Postgres

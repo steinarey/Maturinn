@@ -1,14 +1,14 @@
 <h2 id="shop-title">{{ t('shop.title') }}</h2>
-{% if error == 'not_connected' %}
-  <p>{{ t('shop.not_connected') }}</p>
-  <div class="actions"><a class="btn primary" href="/settings">{{ t('shop.go_settings') }}</a>
-    <button class="btn" type="button" data-close>{{ t('shop.close') }}</button></div>
-{% elif error == 'nothing' %}
+{% if error == 'nothing' %}
   <p>{{ t('shop.nothing') }}</p>
+  <div class="actions"><button class="btn" type="button" data-close>{{ t('shop.close') }}</button></div>
+{% elif error == 'no_lists' %}
+  <p>{{ t('settings.ha_no_lists') }}</p>
   <div class="actions"><button class="btn" type="button" data-close>{{ t('shop.close') }}</button></div>
 {% elif error %}
   <p class="flash error" role="alert">{{ t('shop.error') }}: {{ error }}</p>
-  <div class="actions"><button class="btn" type="button" data-close>{{ t('shop.close') }}</button></div>
+  <div class="actions"><a class="btn" href="/settings">{{ t('shop.go_settings') }}</a>
+    <button class="btn" type="button" data-close>{{ t('shop.close') }}</button></div>
 {% elif done %}
   <p role="status">{{ t('shop.added', n=added|length, list=chosen.name) }}</p>
   <ul class="shop-added">{% for title in added %}<li>{{ title }}</li>{% endfor %}</ul>

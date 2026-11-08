@@ -23,7 +23,7 @@ Running list. Status: **done**, **partial**, **planned**.
 | Cooking-guide chat | planned | `LLMProvider` interface exists |
 | Import recipe photo from page | planned | Scraper finds the image URL (stored in `import_draft.raw`); not downloaded yet |
 | Nutrition via MCP food database | planned | `food_id`, `match_confidence`, `recipe_nutrition` exist; needs MCP server URL + tool names |
-| Shopping list (Microsoft To Do) | done (awaiting secret for live test) | Settings page connects the account (MSAL, encrypted token cache); read view sends checked ingredients, scaled and merged, to a To Do list; skips items already on it |
+| Shopping list (Home Assistant to-do) | done | Read view sends checked ingredients, scaled and merged, to any `todo.*` entity; skips items already on it; Settings shows HA status |
 
 ## Known gaps
 
@@ -33,5 +33,5 @@ Running list. Status: **done**, **partial**, **planned**.
 - Import drafts can't be deleted from the UI yet (route exists, no button).
 - A linked sub-recipe (e.g. the jam) is linked from a step, not listed as an ingredient of the parent recipe.
 - Image imports need a vision-capable model; HEIC photos aren't supported (phones usually upload JPEG).
-- To Do: tasks are added one request each (fine for a recipe; no Graph `$batch`). Duplicates are matched by item name only, so "Mjólk (1 l)" on the list unchecks milk even if the recipe needs more.
+- Shopping list: duplicates are matched by item name only, so "Mjólk (1 l)" on the list unchecks milk even if the recipe needs more.
 - Import URL check resolves DNS before fetching; a DNS-rebinding host could still slip through.

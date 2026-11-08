@@ -1,5 +1,5 @@
-"""Shopping list interface. The real implementation is Microsoft To Do (`microsoft.py`);
-tests use `FakeShoppingList`."""
+"""Shopping list interface. The real implementation is a Home Assistant to-do list
+(`homeassistant.py`); tests use `FakeShoppingList`."""
 from dataclasses import dataclass, field
 from typing import Protocol
 
@@ -8,15 +8,11 @@ class ShoppingError(Exception):
     """The list service failed (network, throttling, permissions)."""
 
 
-class NotConnected(ShoppingError):
-    """No account connected, or its sign-in expired and needs to be redone."""
-
-
 @dataclass(frozen=True)
 class ShoppingListInfo:
     id: str
     name: str
-    is_default: bool = False  # the service's own default list ("Tasks")
+    is_default: bool = False  # the service's own shopping list (todo.shopping_list in HA)
 
 
 @dataclass

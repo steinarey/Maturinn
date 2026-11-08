@@ -238,3 +238,17 @@ dialog::backdrop { background: rgb(0 0 0 / .55); }
 .picker h2 { margin-top: 0; }
 .link-results { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 6px; max-height: 50vh; overflow: auto; }
 .link-results .pick { width: 100%; justify-content: flex-start; text-align: left; }
+
+/* Settings + shopping list */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 18px; }
+.panel h2 { margin-top: 0; }
+.panel code { overflow-wrap: anywhere; }
+.inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+.inline-form label { margin: 0; }
+p.small { font-size: .88rem; }
+dialog#shop { padding: 0; width: min(520px, calc(100vw - 32px)); }
+dialog#shop #shop-body { padding: 18px 20px; }
+.shop-items { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 2px; max-height: 55vh; overflow: auto; }
+.shop-items label { display: flex; gap: 10px; align-items: baseline; padding: 6px 4px; margin: 0; cursor: pointer; font-weight: normal; }
+.shop-items input { width: 1.1em; height: 1.1em; flex: none; }
+.shop-added { margin: 8px 0 14px; }

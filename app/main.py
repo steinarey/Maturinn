@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
-from app.routers import api, health, imports, ingredients, pages
+from app.routers import api, health, imports, ingredients, pages, shopping
 from app.worker import Worker
 
 
@@ -30,4 +30,5 @@ app.include_router(health.router)
 app.include_router(api.router)
 app.include_router(ingredients.router)
 app.include_router(imports.router)
+app.include_router(shopping.router)
 app.include_router(pages.router)

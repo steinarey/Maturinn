@@ -12,7 +12,9 @@ os.environ["DB_SCHEMA"] = os.environ.get("TEST_DB_SCHEMA", "maturinn_test")
 os.environ["PHOTOS_DIR"] = tempfile.mkdtemp(prefix="maturinn-photos-")
 os.environ["WORKER_ENABLED"] = "false"
 # Never reach a real LLM provider from tests, whatever .env says.
-for _k in ("PROVIDER", "LLM", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"):
+# Same for Microsoft (To Do); tests that need it set fake values and fake the network.
+for _k in ("PROVIDER", "LLM", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY",
+           "MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET", "MICROSOFT_REDIRECT_URI"):
     os.environ[_k] = ""
 
 import pytest  # noqa: E402

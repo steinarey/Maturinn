@@ -281,3 +281,23 @@ class ImportDraft(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class MicrosoftAccount(Base):
+    """The one connected Microsoft account (To Do shopping list). Single row, id 1.
+
+    `token_cache` and `auth_flow` are encrypted with a key derived from
+    MICROSOFT_CLIENT_SECRET: the cache holds a refresh token, the flow a PKCE verifier."""
+
+    __tablename__ = "microsoft_account"
+    __table_args__ = (CheckConstraint("id = 1", name="microsoft_account_single_row"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, default=1)
+    username: Mapped[str | None] = mapped_column(Text)
+    token_cache: Mapped[str | None] = mapped_column(Text)
+    auth_flow: Mapped[str | None] = mapped_column(Text)  # pending sign-in
+    list_id: Mapped[str | None] = mapped_column(Text)  # default To Do list
+    list_name: Mapped[str | None] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

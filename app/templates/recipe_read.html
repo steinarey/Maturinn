@@ -7,12 +7,16 @@
     {% if r.servings %}
     <span class="scaler">
       <label for="servings" style="margin:0">{{ t('recipe.servings') }}</label>
-      <input id="servings" type="number" min="1" max="1000" value="{{ r.servings }}" data-base="{{ r.servings }}">
+      <input id="servings" name="servings" type="number" min="1" max="1000" value="{{ r.servings }}" data-base="{{ r.servings }}">
     </span>
     {% endif %}
     {% if r.tags %}<ul class="tags">{% for tg in r.tags %}<li class="tag"><a href="/?q={{ tag_name(tg, lang) | urlencode }}">{{ tag_name(tg, lang) }}</a></li>{% endfor %}</ul>{% endif %}
     <span class="actions" style="margin-left:auto">
       <button class="btn small" type="button" id="wake" hidden>{{ t('read.keep_awake') }}</button>
+      {% if shopping_enabled and r.ingredients %}
+      <button class="btn small" type="button" id="shop-open" hx-get="/recipes/{{ r.id }}/shopping"
+              hx-include="#servings" hx-target="#shop-body">🛒 {{ t('shop.button') }}</button>
+      {% endif %}
       <a class="btn small" href="/recipes/{{ r.id }}/edit">{{ t('action.edit') }}</a>
     </span>
   </div>
@@ -73,6 +77,11 @@
       {% if r.source_url %}<p class="muted">{{ t('recipe.source') }}: <a href="{{ r.source_url }}" rel="noopener noreferrer">{{ r.source_url | truncate(60) }}</a></p>{% endif %}
     </div>
   </div>
+  {% if shopping_enabled and r.ingredients %}
+  <dialog id="shop" aria-labelledby="shop-title">
+    <div id="shop-body" class="picker"><p class="muted">{{ t('shop.loading') }}</p></div>
+  </dialog>
+  {% endif %}
   {# Later phases mount here: translation toggle and the cooking-guide chat (LLM_ENABLED). #}
 </article>
 {% endblock %}

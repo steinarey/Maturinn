@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ t('settings.title') }} · {{ t('app.name') }}{% endblock %}
+{% block content %}
+<h1>{{ t('settings.title') }}</h1>
+{% if ok %}<p class="flash" role="status">{{ t('settings.ok.' ~ ok) }}</p>{% endif %}
+{% if error and error != 'expired' %}<p class="flash error" role="alert">{{ t('settings.todo_error') }}: {{ error }}</p>{% endif %}
+
+<section class="panel">
+  <h2>{{ t('settings.todo') }}</h2>
+  {% if not configured %}
+    <p class="muted">{{ t('settings.todo_not_configured') }}</p>
+  {% elif account and error != 'expired' %}
+    <p>{{ t('settings.todo_connected_as') }} <strong>{{ account.username }}</strong></p>
+    {% if lists %}
+    <form method="post" action="/settings/microsoft/list" class="inline-form">
+      <label for="list_id">{{ t('settings.todo_default_list') }}</label>
+      <select id="list_id" name="list_id">
+        {% for l in lists %}<option value="{{ l.id }}" {% if l.id == account.list_id %}selected{% endif %}>{{ l.name }}</option>{% endfor %}
+      </select>
+      <button class="btn small" type="submit">{{ t('action.save') }}</button>
+    </form>
+    {% endif %}
+    <form method="post" action="/settings/microsoft/disconnect" class="actions">
+      <button class="btn small" type="submit">{{ t('settings.todo_disconnect') }}</button>
+    </form>
+  {% else %}
+    <p>{{ t('settings.todo_expired') if error == 'expired' else t('settings.todo_not_connected') }}</p>
+    <form method="post" action="/settings/microsoft/connect" class="actions">
+      <button class="btn primary" type="submit">{{ t('settings.todo_connect') }}</button>
+    </form>
+  {% endif %}
+  {% if configured %}
+  <p class="muted small">{{ t('settings.todo_redirect') }}: <code>{{ redirect_uri }}</code><br>{{ t('settings.todo_redirect_hint') }}</p>
+  {% endif %}
+</section>
+{% endblock %}

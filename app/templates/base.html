@@ -25,6 +25,8 @@
           <a class="chip" href="/set-lang/{{ code }}" hreflang="{{ code }}" title="{{ label }}"
              aria-pressed="{{ 'true' if code == lang else 'false' }}">{{ code | upper }}</a>
         {% endfor %}
+        <a class="chip" href="/settings" title="{{ t('nav.settings') }}" aria-label="{{ t('nav.settings') }}"
+           {% if request.url.path == '/settings' %}aria-current="page"{% endif %}>⚙</a>
         {% if theme == 'dark' %}
           <a class="chip" href="/set-theme/light" title="{{ t('theme.to_light') }}" aria-label="{{ t('theme.to_light') }}">☀</a>
         {% else %}

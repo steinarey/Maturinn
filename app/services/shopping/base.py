@@ -1,16 +1,49 @@
-"""Shopping list interface (Microsoft To Do via the user's Azure project, later phase)."""
+"""Shopping list interface. The real implementation is Microsoft To Do (`microsoft.py`);
+tests use `FakeShoppingList`."""
+from dataclasses import dataclass, field
 from typing import Protocol
 
 
+class ShoppingError(Exception):
+    """The list service failed (network, throttling, permissions)."""
+
+
+class NotConnected(ShoppingError):
+    """No account connected, or its sign-in expired and needs to be redone."""
+
+
+@dataclass(frozen=True)
+class ShoppingListInfo:
+    id: str
+    name: str
+    is_default: bool = False  # the service's own default list ("Tasks")
+
+
+@dataclass
+class ShoppingItem:
+    title: str  # e.g. "Hveiti (300 g)"
+    names: set[str] = field(default_factory=set)  # normalized names, for "already on the list"
+
+
 class ShoppingList(Protocol):
-    def add_items(self, list_name: str, items: list[str]) -> None: ...
+    def lists(self) -> list[ShoppingListInfo]: ...
+    def open_titles(self, list_id: str) -> list[str]: ...
+    def add_items(self, list_id: str, titles: list[str], note: str = "") -> None: ...
 
 
-class StubShoppingList:
-    """Records items in memory. Replaced once Azure credentials are configured."""
+class FakeShoppingList:
+    """In-memory list service for tests."""
 
-    def __init__(self) -> None:
-        self.added: list[tuple[str, list[str]]] = []
+    def __init__(self, lists: dict[str, list[str]] | None = None) -> None:
+        self.data = lists if lists is not None else {"L1": []}
+        self.notes: list[str] = []
 
-    def add_items(self, list_name: str, items: list[str]) -> None:
-        self.added.append((list_name, list(items)))
+    def lists(self) -> list[ShoppingListInfo]:
+        return [ShoppingListInfo(id=k, name=k) for k in self.data]
+
+    def open_titles(self, list_id: str) -> list[str]:
+        return list(self.data[list_id])
+
+    def add_items(self, list_id: str, titles: list[str], note: str = "") -> None:
+        self.data[list_id].extend(titles)
+        self.notes.append(note)

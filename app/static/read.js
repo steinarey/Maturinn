@@ -25,6 +25,15 @@
     li.addEventListener('click', e => { if (!e.target.closest('a')) li.classList.toggle('done'); });
   }
 
+  // Shopping list dialog: the button loads its content with htmx; we only open/close it.
+  const shop = document.getElementById('shop');
+  const shopOpen = document.getElementById('shop-open');
+  if (shop && shopOpen) {
+    const loading = shop.querySelector('#shop-body').innerHTML;
+    shopOpen.addEventListener('click', () => { shop.querySelector('#shop-body').innerHTML = loading; shop.showModal(); });
+    shop.addEventListener('click', e => { if (e.target.closest('[data-close]') || e.target === shop) shop.close(); });
+  }
+
   const wake = document.getElementById('wake');
   if (wake && 'wakeLock' in navigator) {
     wake.hidden = false;

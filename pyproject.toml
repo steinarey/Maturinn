@@ -16,6 +16,7 @@ dependencies = [
     "langchain-core>=1.7.6",
     "langchain-google-genai>=4.4.3",
     "langchain-openai>=1.7.4",
+    "msal>=1.39.0",
     "pillow>=13.0.0",
     "psycopg[binary]>=3.3.8",
     "pydantic-settings>=2.16.2",

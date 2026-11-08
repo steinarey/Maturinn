@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ form.title or t('edit.new_title') }} · {{ t('app.name') }}{% endblock %}
+{% block head %}<script src="/static/Sortable.min.js" defer></script>{% endblock %}
+{% block content %}
+<h1>{{ t('edit.edit_title') if recipe else t('edit.new_title') }}</h1>
+{% if errors %}<p class="flash error" role="alert">{{ t('error.form') }}</p>{% endif %}
+
+<form class="edit" method="post" action="{{ '/recipes/%d' % recipe.id if recipe else '/recipes' }}" id="recipe-form">
+  <fieldset>
+    <legend>{{ t('edit.basics') }}</legend>
+    <div class="field">
+      <label for="title">{{ t('recipe.title') }}</label>
+      <input type="text" id="title" name="title" value="{{ form.title }}" required
+             {% if errors.title %}aria-invalid="true"{% endif %}>
+      {% if errors.title %}<div class="error">{{ t(errors.title) }}</div>{% endif %}
+    </div>
+    <div class="field">
+      <label for="description">{{ t('recipe.description') }}</label>
+      <textarea id="description" name="description" rows="3">{{ form.description }}</textarea>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="servings">{{ t('recipe.servings') }}</label>
+        <input type="number" id="servings" name="servings" min="1" max="1000" value="{{ form.servings }}">
+        {% if errors.servings %}<div class="error">{{ t(errors.servings) }}</div>{% endif %}
+      </div>
+      <div class="field">
+        <label for="original_lang">{{ t('recipe.original_lang') }}</label>
+        <select id="original_lang" name="original_lang">
+          {% for code, label in languages %}
+          <option value="{{ code }}" {% if code == form.original_lang %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="tags">{{ t('recipe.tags') }}</label>
+      <input type="text" id="tags" name="tags" value="{{ form.tags }}" placeholder="{{ t('edit.tags_hint') }}">
+    </div>
+    <div class="field">
+      <label for="source_url">{{ t('recipe.source') }}</label>
+      <input type="url" id="source_url" name="source_url" value="{{ form.source_url }}" placeholder="https://">
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{ t('recipe.ingredients') }}</legend>
+    <p class="muted" style="margin-top:0">{{ t('edit.ingredients_hint') }}</p>
+    <ul class="rows sortable" id="ing-rows">
+      {% for row in form.ingredients %}{% include "partials/ing_row.html" %}{% endfor %}
+    </ul>
+    <datalist id="ing-options"></datalist>
+    <button class="btn small" type="button" hx-get="/fragments/ingredient-row" hx-target="#ing-rows" hx-swap="beforeend">+ {{ t('edit.add_ingredient') }}</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{ t('recipe.items') }}</legend>
+    <p class="muted" style="margin-top:0">{{ t('edit.items_hint') }}</p>
+    <ul class="rows sortable" id="item-rows">
+      {% for row in form['items'] %}{% include "partials/item_row.html" %}{% endfor %}
+    </ul>
+    <button class="btn small" type="button" hx-get="/fragments/item-row" hx-target="#item-rows" hx-swap="beforeend">+ {{ t('edit.add_item') }}</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{ t('recipe.steps') }}</legend>
+    <ol class="rows sortable" id="step-rows">
+      {% for row in form.steps %}{% include "partials/step_row.html" %}{% endfor %}
+    </ol>
+    <button class="btn small" type="button" hx-get="/fragments/step-row" hx-target="#step-rows" hx-swap="beforeend">+ {{ t('edit.add_step') }}</button>
+  </fieldset>
+
+  <div class="actions">
+    <button class="btn primary" type="submit">{{ t('action.save') }}</button>
+    <a class="btn" href="{{ '/recipes/%d' % recipe.id if recipe else '/' }}">{{ t('action.cancel') }}</a>
+  </div>
+</form>
+
+{% if recipe %}
+<form method="post" action="/recipes/{{ recipe.id }}/delete" class="actions" style="margin-top:28px" id="delete-form">
+  <button class="btn danger" type="submit" data-confirm="{{ t('edit.delete_confirm') }}">{{ t('action.delete') }}</button>
+</form>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="/static/edit.js" defer></script>{% endblock %}

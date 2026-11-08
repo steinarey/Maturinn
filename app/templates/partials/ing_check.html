@@ -1,0 +1,8 @@
+{% if match %}
+  <span>✓ {{ match_name }}</span>
+{% elif name.strip() %}
+  <span>{{ t('edit.new_ingredient') }}</span>
+  {% for s in suggestions %}
+    <button class="btn small use-suggestion" type="button" data-name="{{ s.name }}">{{ t('edit.use_instead', name=s.name) }}</button>
+  {% endfor %}
+{% endif %}

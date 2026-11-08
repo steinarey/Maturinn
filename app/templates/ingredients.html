@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav.ingredients') }} · {{ t('app.name') }}{% endblock %}
+{% block content %}
+<h1>{{ t('nav.ingredients') }}</h1>
+<p class="muted">{{ t('ingredients.intro') }}</p>
+{% if ingredients %}
+<div class="table-wrap">
+<table>
+  <thead><tr>
+    {% for code in langs %}<th>{{ t('lang.' ~ code) }}</th>{% endfor %}
+    <th>{{ t('ingredients.group') }}</th>
+    <th>{{ t('ingredients.used_in') }}</th>
+  </tr></thead>
+  <tbody>
+  {% for ing in ingredients %}
+    <tr>
+      {% for code in langs %}
+      <td>
+        {% set own = ing.names | selectattr('lang', 'equalto', code) | list %}
+        {% if own %}<a href="/ingredients/{{ ing.id }}">{{ own | map(attribute='name') | join(', ') }}</a>
+        {% else %}<a class="muted" href="/ingredients/{{ ing.id }}">—</a>{% endif %}
+      </td>
+      {% endfor %}
+      <td>{% if ing.parent %}{{ ing.parent.name_in(lang) }}{% endif %}</td>
+      <td>{{ usage.get(ing.id, 0) }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">{{ t('ingredients.empty') }}</p>
+{% endif %}
+{% endblock %}

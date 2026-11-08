@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ r.title }} · {{ t('app.name') }}{% endblock %}
+{% block content %}
+<article class="read" data-lang="{{ lang }}">
+  <h1>{{ r.title }}</h1>
+  <div class="meta">
+    {% if r.servings %}
+    <span class="scaler">
+      <label for="servings" style="margin:0">{{ t('recipe.servings') }}</label>
+      <input id="servings" type="number" min="1" max="1000" value="{{ r.servings }}" data-base="{{ r.servings }}">
+    </span>
+    {% endif %}
+    {% if r.tags %}<ul class="tags">{% for tg in r.tags %}<li class="tag"><a href="/?q={{ tag_name(tg, lang) | urlencode }}">{{ tag_name(tg, lang) }}</a></li>{% endfor %}</ul>{% endif %}
+    <span class="actions" style="margin-left:auto">
+      <button class="btn small" type="button" id="wake" hidden>{{ t('read.keep_awake') }}</button>
+      <a class="btn small" href="/recipes/{{ r.id }}/edit">{{ t('action.edit') }}</a>
+    </span>
+  </div>
+  {% if r.original_lang != lang %}
+    <p class="muted">{{ t('read.written_in.' ~ r.original_lang) }}</p>
+  {% endif %}
+  {% if r.description %}<p class="desc">{{ r.description }}</p>{% endif %}
+
+  <div class="cols {% if r.ingredients or r.items %}has-side{% endif %}">
+    {% if r.ingredients or r.items %}
+    <div class="side">
+      {% if r.ingredients %}
+      <h2>{{ t('recipe.ingredients') }}</h2>
+      <ul class="ingredients">
+        {% for ri in r.ingredients %}
+        <li>
+          <span class="q" {% if ri.quantity is not none %}data-qty="{{ ri.quantity }}" data-unit="{{ ri.unit }}"{% endif %}>{{ qty(ri.quantity) }} {{ ri.unit }}</span>
+          <span><span class="name">{{ ri.ingredient.name_in(lang) }}</span>{% if ri.note %}<span class="note">, {{ ri.note }}</span>{% endif %}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if r.items %}
+      <h2>{{ t('recipe.items') }}</h2>
+      <ul class="needs">{% for it in r.items %}<li>{{ it.name }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div>
+      {% if r.steps %}
+      <h2>{{ t('recipe.steps') }}</h2>
+      <ol class="steps">
+        {% for s in r.steps %}
+        <li>
+          {% if s.text %}<div class="text">{{ s.text }}</div>{% endif %}
+          {% if s.photos %}
+          <div class="photos">
+            {% for p in s.photos %}
+            <figure>
+              <a href="/photos/{{ p.path }}"><img src="/photos/{{ thumb(p.path) }}" alt="{{ p.caption }}" loading="lazy"></a>
+              {% if p.caption %}<figcaption>{{ p.caption }}</figcaption>{% endif %}
+            </figure>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+      {% endif %}
+      {% if r.source_url %}<p class="muted">{{ t('recipe.source') }}: <a href="{{ r.source_url }}" rel="noopener noreferrer">{{ r.source_url | truncate(60) }}</a></p>{% endif %}
+    </div>
+  </div>
+  {# Later phases mount here: translation toggle and the cooking-guide chat (LLM_ENABLED). #}
+</article>
+{% endblock %}
+{% block scripts %}<script src="/static/read.js" defer></script>{% endblock %}

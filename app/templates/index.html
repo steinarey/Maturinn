@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<form class="search" action="/" method="get" role="search"
+      hx-get="/" hx-target="#results" hx-push-url="true"
+      hx-trigger="input delay:300ms, submit">
+  <input type="search" name="q" value="{{ q }}" placeholder="{{ t('search.placeholder') }}"
+         aria-label="{{ t('search.label') }}" autocomplete="off">
+  <div class="filters">
+    <div>
+      <label for="has">{{ t('search.has') }}</label>
+      <input type="text" id="has" name="has" value="{{ has }}" placeholder="{{ t('search.has_hint') }}">
+    </div>
+    <div>
+      <label for="without">{{ t('search.without') }}</label>
+      <input type="text" id="without" name="without" value="{{ without }}" placeholder="{{ t('search.without_hint') }}">
+    </div>
+  </div>
+  <noscript><button class="btn" type="submit">{{ t('search.submit') }}</button></noscript>
+</form>
+<div id="results">{% include "partials/results.html" %}</div>
+{% endblock %}

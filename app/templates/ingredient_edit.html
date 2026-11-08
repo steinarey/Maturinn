@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ ing.name_in(lang) }} · {{ t('app.name') }}{% endblock %}
+{% block content %}
+<p><a href="/ingredients">← {{ t('nav.ingredients') }}</a></p>
+<h1>{{ ing.name_in(lang) }}</h1>
+<p class="muted">{{ t('ingredients.used_in_n', n=usage) }}</p>
+{% if error %}<p class="flash error" role="alert">{{ t('ingredients.name_taken', name=error) }}</p>
+{% elif error is not none %}<p class="flash error" role="alert">{{ t('ingredients.needs_name') }}</p>{% endif %}
+
+<form class="edit" method="post" action="/ingredients/{{ ing.id }}">
+  {% for code, label in languages %}
+  <fieldset>
+    <legend>{{ label }}</legend>
+    <div class="grid2">
+      <div class="field">
+        <label for="name_{{ code }}">{{ t('ingredients.primary_name') }}</label>
+        <input type="text" id="name_{{ code }}" name="name_{{ code }}" value="{{ names[code].primary }}">
+      </div>
+      <div class="field">
+        <label for="aliases_{{ code }}">{{ t('ingredients.aliases') }}</label>
+        <input type="text" id="aliases_{{ code }}" name="aliases_{{ code }}" value="{{ names[code].aliases }}"
+               placeholder="{{ t('ingredients.aliases_hint') }}">
+      </div>
+    </div>
+  </fieldset>
+  {% endfor %}
+  <fieldset>
+    <legend>{{ t('ingredients.group') }}</legend>
+    <p class="muted" style="margin-top:0">{{ t('ingredients.group_hint') }}</p>
+    <select name="parent_id" aria-label="{{ t('ingredients.group') }}">
+      <option value="">—</option>
+      {% for o in others %}<option value="{{ o.id }}" {% if o.id == ing.parent_id %}selected{% endif %}>{{ o.name_in(lang) }}</option>{% endfor %}
+    </select>
+  </fieldset>
+  <fieldset>
+    <legend>{{ t('ingredients.food_id') }}</legend>
+    <p class="muted" style="margin-top:0">{{ t('ingredients.food_id_hint') }}</p>
+    <input type="text" name="food_id" value="{{ ing.food_id or '' }}" aria-label="{{ t('ingredients.food_id') }}">
+  </fieldset>
+  <div class="actions"><button class="btn primary" type="submit">{{ t('action.save') }}</button></div>
+</form>
+
+<h2>{{ t('ingredients.merge') }}</h2>
+<p class="muted">{{ t('ingredients.merge_hint') }}</p>
+<form method="post" action="/ingredients/{{ ing.id }}/merge" class="actions">
+  <select name="target_id" required aria-label="{{ t('ingredients.merge_into') }}" style="max-width:20em">
+    <option value="">{{ t('ingredients.merge_into') }}</option>
+    {% for o in others %}<option value="{{ o.id }}">{{ o.name_in(lang) }}</option>{% endfor %}
+  </select>
+  <button class="btn" type="submit">{{ t('ingredients.merge') }}</button>
+</form>
+{% if not usage %}
+<form method="post" action="/ingredients/{{ ing.id }}/delete" class="actions" style="margin-top:20px">
+  <button class="btn danger" type="submit">{{ t('action.delete') }}</button>
+</form>
+{% endif %}
+{% endblock %}

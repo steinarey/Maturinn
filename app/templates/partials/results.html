@@ -1,0 +1,25 @@
+{% if result.unknown %}
+  <p class="flash">{{ t('search.unknown', names=result.unknown | join(', ')) }}</p>
+{% endif %}
+{% if result.recipes %}
+<ul class="cards">
+  {% for r in result.recipes %}
+  {% set photo = cover(r) %}
+  <li class="card">
+    <a href="/recipes/{{ r.id }}">
+      {% if photo %}<img class="thumb" src="/photos/{{ thumb(photo) }}" alt="" loading="lazy">
+      {% else %}<div class="thumb" aria-hidden="true"></div>{% endif %}
+      <div class="body">
+        <h3>{{ r.title }}</h3>
+        {% if r.servings %}<div class="muted">{{ t('recipe.servings_n', n=r.servings) }}</div>{% endif %}
+        {% if r.tags %}<ul class="tags">{% for tg in r.tags %}<li class="tag">{{ tag_name(tg, lang) }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% elif q or has or without %}
+  <p class="muted">{{ t('search.none') }}</p>
+{% else %}
+  <p class="muted">{{ t('list.empty') }} <a href="/recipes/new">{{ t('list.add_first') }}</a></p>
+{% endif %}

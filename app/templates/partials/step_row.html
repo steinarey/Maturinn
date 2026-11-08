@@ -1,0 +1,18 @@
+<li class="row step">
+  <span class="handle" aria-hidden="true">⠿</span>
+  <div>
+    <input type="hidden" name="step_key" value="{{ row.key }}">
+    <input type="hidden" name="step_id" value="{{ row.id }}">
+    <textarea name="step_text" rows="3" aria-label="{{ t('recipe.step') }}" placeholder="{{ t('edit.step_placeholder') }}">{{ row.text }}</textarea>
+    <div class="step-photos" id="photos-{{ row.key }}">
+      {% with key=row.key, photos=row.photos %}{% include "partials/photos.html" %}{% endwith %}
+    </div>
+    <label class="upload btn small">📷 {{ t('edit.add_photos') }}
+      <input type="file" name="files" accept="image/*" multiple
+             hx-post="/fragments/photo" hx-encoding="multipart/form-data" hx-trigger="change"
+             hx-vals='{"key": "{{ row.key }}"}' hx-include="this"
+             hx-target="#photos-{{ row.key }}" hx-swap="beforeend">
+    </label>
+  </div>
+  <button class="btn icon remove" type="button" aria-label="{{ t('action.remove') }}" title="{{ t('action.remove') }}">✕</button>
+</li>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="{{ lang }}" data-theme="{{ theme }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="{{ 'light' if theme == 'light' else 'dark' }}">
+  <title>{% block title %}{{ t('app.name') }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/htmx.min.js" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="/">Matur<span>inn</span></a>
+      <nav class="nav" aria-label="{{ t('nav.label') }}">
+        {% set path = request.url.path %}
+        <a href="/" {% if path == '/' %}aria-current="page"{% endif %}>{{ t('nav.recipes') }}</a>
+        <a href="/recipes/new" {% if path == '/recipes/new' %}aria-current="page"{% endif %}>{{ t('nav.new') }}</a>
+        <a href="/ingredients" {% if path.startswith('/ingredients') %}aria-current="page"{% endif %}>{{ t('nav.ingredients') }}</a>
+      </nav>
+      <div class="prefs">
+        {% for code, label in languages %}
+          <a class="chip" href="/set-lang/{{ code }}" hreflang="{{ code }}" title="{{ label }}"
+             aria-pressed="{{ 'true' if code == lang else 'false' }}">{{ code | upper }}</a>
+        {% endfor %}
+        {% if theme == 'dark' %}
+          <a class="chip" href="/set-theme/light" title="{{ t('theme.to_light') }}" aria-label="{{ t('theme.to_light') }}">☀</a>
+        {% else %}
+          <a class="chip" href="/set-theme/dark" title="{{ t('theme.to_dark') }}" aria-label="{{ t('theme.to_dark') }}">☾</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

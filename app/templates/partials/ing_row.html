@@ -1,0 +1,15 @@
+{% set n = loop.index0 if loop is defined else 0 %}
+<li class="row ing" {% if errors['ing_%d' % n] %}aria-invalid="true"{% endif %}>
+  <span class="handle" aria-hidden="true">⠿</span>
+  <input type="hidden" name="ing_id" value="{{ row.id }}">
+  <input type="text" name="ing_qty" value="{{ row.qty }}" inputmode="decimal" placeholder="{{ t('recipe.quantity') }}" aria-label="{{ t('recipe.quantity') }}">
+  <input type="text" name="ing_unit" value="{{ row.unit }}" placeholder="{{ t('recipe.unit') }}" aria-label="{{ t('recipe.unit') }}">
+  <div class="name" hx-get="/fragments/ingredient-check" hx-trigger="change" hx-include="this" hx-target="find .check">
+    <input type="text" name="ing_name" value="{{ row.name }}" list="ing-options" autocomplete="off"
+           placeholder="{{ t('recipe.ingredient') }}" aria-label="{{ t('recipe.ingredient') }}"
+           hx-get="/fragments/ingredient-options" hx-trigger="input changed delay:250ms" hx-target="#ing-options" hx-swap="innerHTML">
+    <div class="check muted" aria-live="polite">{% if errors['ing_%d' % n] %}<span class="error">{{ t(errors['ing_%d' % n]) }}</span>{% endif %}</div>
+  </div>
+  <input class="note" type="text" name="ing_note" value="{{ row.note }}" placeholder="{{ t('recipe.note') }}" aria-label="{{ t('recipe.note') }}">
+  <button class="btn icon remove" type="button" aria-label="{{ t('action.remove') }}" title="{{ t('action.remove') }}">✕</button>
+</li>

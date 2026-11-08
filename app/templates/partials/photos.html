@@ -1,0 +1,8 @@
+{% for p in photos %}
+<div class="ph">
+  <img src="/photos/{{ thumb(p.path) }}" alt="">
+  <input type="hidden" name="photo_path_{{ key }}" value="{{ p.path }}">
+  <input type="text" name="photo_caption_{{ key }}" value="{{ p.caption }}" placeholder="{{ t('edit.caption') }}" aria-label="{{ t('edit.caption') }}">
+  <button class="btn small remove-photo" type="button">{{ t('action.remove') }}</button>
+</div>
+{% endfor %}

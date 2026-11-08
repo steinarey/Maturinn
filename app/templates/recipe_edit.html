@@ -3,7 +3,13 @@
 {% block head %}<script src="/static/Sortable.min.js" defer></script>{% endblock %}
 {% block content %}
 <h1>{{ t('import.review_title') if draft else (t('edit.edit_title') if recipe else t('edit.new_title')) }}</h1>
-{% if draft %}<p class="flash" role="status">{{ t('import.review_hint') }}</p>{% endif %}
+{% if draft %}
+<div class="flash" role="status">
+  <p style="margin:0">{{ t('import.review_hint') }}</p>
+  {% if draft.instructions %}<p class="muted" style="margin:6px 0 0">{{ t('import.instructions_used') }}: {{ draft.instructions }}</p>{% endif %}
+  {% if draft.images %}<div class="src-images">{% for p in draft.images %}<a href="/photos/{{ p }}" target="_blank"><img src="/photos/{{ p }}" alt="{{ t('import.source_image', n=loop.index) }}"></a>{% endfor %}</div>{% endif %}
+</div>
+{% endif %}
 {% if errors %}<p class="flash error" role="alert">{{ t('error.form') }}</p>{% endif %}
 
 <form class="edit" method="post" action="{{ '/recipes/%d' % recipe.id if recipe else '/recipes' }}" id="recipe-form">
@@ -19,6 +25,7 @@
     <div class="field">
       <label for="description">{{ t('recipe.description') }}</label>
       <textarea id="description" name="description" rows="3">{{ form.description }}</textarea>
+      <button class="btn small link-btn" type="button" data-picker>🔗 {{ t('edit.link_recipe') }}</button>
     </div>
     <div class="grid2">
       <div class="field">
@@ -75,6 +82,7 @@
       {% for row in form.steps %}{% include "partials/step_row.html" %}{% endfor %}
     </ol>
     <button class="btn small" type="button" hx-get="/fragments/step-row" hx-target="#step-rows" hx-swap="beforeend">+ {{ t('edit.add_step') }}</button>
+    <p class="muted" style="margin-bottom:0">{{ t('edit.links_hint') }}</p>
   </fieldset>
 
   <div class="actions">
@@ -88,5 +96,16 @@
   <button class="btn danger" type="submit" data-confirm="{{ t('edit.delete_confirm') }}">{{ t('action.delete') }}</button>
 </form>
 {% endif %}
+
+<dialog id="link-picker" aria-labelledby="link-picker-title">
+  <form method="dialog" class="picker">
+    <h2 id="link-picker-title">{{ t('edit.link_title') }}</h2>
+    <input type="search" name="q" placeholder="{{ t('edit.link_search') }}" autocomplete="off"
+           hx-get="/fragments/recipe-links{% if recipe %}?exclude={{ recipe.id }}{% endif %}" hx-trigger="input delay:200ms"
+           hx-target="#link-results" hx-include="this">
+    <ul id="link-results" class="link-results"></ul>
+    <div class="actions"><button class="btn" value="cancel">{{ t('action.cancel') }}</button></div>
+  </form>
+</dialog>
 {% endblock %}
 {% block scripts %}<script src="/static/edit.js" defer></script>{% endblock %}

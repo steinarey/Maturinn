@@ -260,7 +260,7 @@ class ImportDraft(Base):
     __tablename__ = "import_draft"
     __table_args__ = (
         CheckConstraint("status IN ('pending','fetching','extracting','ready','failed','saved')"),
-        CheckConstraint("kind IN ('url','text')"),
+        CheckConstraint("kind IN ('url','text','image')", name="import_draft_kind_check"),
         Index("ix_import_draft_status", "status"),
     )
 
@@ -268,6 +268,8 @@ class ImportDraft(Base):
     kind: Mapped[str] = mapped_column(String(8), default="url")
     url: Mapped[str | None] = mapped_column(Text)
     source_text: Mapped[str | None] = mapped_column(Text)  # pasted, or extracted from the page
+    images: Mapped[list] = mapped_column(JSONB, default=list, server_default="[]")  # paths under PHOTOS_DIR
+    instructions: Mapped[str] = mapped_column(Text, default="", server_default="")  # user's directions to the LLM
     status: Mapped[str] = mapped_column(String(16), default="pending")
     raw: Mapped[dict | None] = mapped_column(JSONB)  # scraper metadata
     draft: Mapped[dict | None] = mapped_column(JSONB)  # RecipeIn-shaped

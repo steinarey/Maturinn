@@ -121,19 +121,31 @@ Ingredients page, and "without nuts" excludes both.
 
 ## Importing recipes
 
-`/import` takes a URL or pasted text.
+`/import` takes a URL, pasted text, or 1–5 photos (cookbook page, handwritten card, screenshot), plus optional
+instructions for the AI ("only the cake, not the jam", "link the jam to my recipe"). Instructions are sent
+separately from the source text, which is treated as untrusted content. Photos are scaled to 1600 px and sent to the
+model as images, so image import needs a vision-capable model.
 
 1. **URL only:** the page is fetched (public http/https addresses only, max 5 MB, so the server can't be used to
    reach machines on your LAN). `recipe-scrapers` reads schema.org recipe data if the page has it; otherwise
    `trafilatura` extracts the page's main text. Pasted text skips this step.
 2. The LLM gets the text and builds the recipe by calling tools: `set_details` (title, description, servings,
-   language, tags), `add_ingredient` (quantity, unit, name, note), `add_item`, `add_step`, or `not_a_recipe`.
+   language, tags), `start_section`, `add_ingredient` (quantity, unit, name, note), `add_item`, `add_step`,
+   `search_recipes` (to link to your saved recipes), or `not_a_recipe`. Links to recipe ids that don't exist are
+   rejected back to the model.
    Bad arguments come back to the model as tool errors so it can retry.
 3. Each tool call updates the draft and adds a progress event. The progress page polls and renders those events
    ("Bæti við lax 300 g", "Skrifa skref 2"), so the text comes from the tool calls, not from the model, and is in the
    UI language.
 4. When done, the draft opens in the write view. Nothing is saved until you click Save. The recipe keeps its
    original language; ingredient names are matched to existing canonical ingredients the same way as typed ones.
+
+## Links between recipes
+
+Steps, descriptions and ingredient notes can link to another recipe with `[label](recipe:12)` (or to a web page with
+`[label](https://…)`). The "Tengja uppskrift" button in the write view inserts one at the cursor; selected text
+becomes the label. The read view renders them as links, and a linked recipe shows "Notað í" (used in) with the
+recipes that link to it. A link to a deleted recipe shows as plain text.
 
 ## Ingredient normalization
 

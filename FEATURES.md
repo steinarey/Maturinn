@@ -9,6 +9,7 @@ Running list. Status: **done**, **partial**, **planned**.
 | UI i18n (is default, en) | done | JSON catalogs, cookie switcher, decimal comma in `is` |
 | Dark theme (default) + light toggle | done | Cookie `theme` |
 | Write view | done | Ingredients (qty/unit/name/note), "you'll need" items, steps; drag to reorder; tags; servings; language |
+| Recipe links | done | `[label](recipe:12)` in steps, description, ingredient notes; picker in write view; "Notað í" backlinks; links to deleted recipes show as text |
 | Ingredient sections | done | Named groups (e.g. Sveskjumauk / Deig) as draggable heading rows; headings in read view; import tool `start_section` |
 | Step sections | planned | Same idea for method steps (e.g. "Samsetning") |
 | Step photos | done | Upload to `PHOTOS_DIR`, resized to 2000 px + 640 px thumbnail, captions |
@@ -18,7 +19,7 @@ Running list. Status: **done**, **partial**, **planned**.
 | Search | done | Full-text (simple + english) + pg_trgm; has/without ingredient filters with groups |
 | JSON API | done | `/api/recipes` CRUD + search |
 | Recipe content translation | planned | Tables exist (`*_translation`, `is_machine`, `source_hash`); LLM on demand, cached, editable |
-| Import from URL or pasted text | done | Scraper (schema.org / page text) → LLM tool calls → live progress → review in write view. Provider via LangChain (`PROVIDER`, `LLM`) |
+| Import from URL, pasted text or images | done | Scraper (schema.org / page text) or 1–5 photos → LLM tool calls → live progress → review in write view. Optional instructions ("only the cake"). Model can search saved recipes and link to them. Provider via LangChain (`PROVIDER`, `LLM`) |
 | Cooking-guide chat | planned | `LLMProvider` interface exists |
 | Import recipe photo from page | planned | Scraper finds the image URL (stored in `import_draft.raw`); not downloaded yet |
 | Nutrition via MCP food database | planned | `food_id`, `match_confidence`, `recipe_nutrition` exist; needs MCP server URL + tool names |
@@ -30,4 +31,6 @@ Running list. Status: **done**, **partial**, **planned**.
 - Units are free text and not translated ("stk" stays "stk" in the English UI).
 - Quantities in the read view scale linearly; no unit conversion yet.
 - Import drafts can't be deleted from the UI yet (route exists, no button).
+- A linked sub-recipe (e.g. the jam) is linked from a step, not listed as an ingredient of the parent recipe.
+- Image imports need a vision-capable model; HEIC photos aren't supported (phones usually upload JPEG).
 - Import URL check resolves DNS before fetching; a DNS-rebinding host could still slip through.

@@ -4,30 +4,37 @@
 <h1>{{ t('import.title') }}</h1>
 <p class="muted">{{ t('import.intro') }}</p>
 {% if not llm_enabled %}<p class="flash" role="status">{{ t('import.no_llm') }}</p>{% endif %}
-{% if errors.form %}<p class="flash error" role="alert">{{ t(errors.form) }}</p>{% endif %}
+{% if errors.form %}<p class="flash error" role="alert">{{ t(errors.form, n=max_images) }}</p>{% endif %}
 
-<div class="import-forms">
-  <form class="edit" method="post" action="/import">
-    <fieldset>
-      <legend>{{ t('import.from_url') }}</legend>
-      <div class="field">
-        <label for="url">{{ t('import.url_label') }}</label>
-        <input type="url" id="url" name="url" value="{{ url }}" placeholder="https://" inputmode="url" autocomplete="off">
-      </div>
-      <button class="btn primary" type="submit" {% if not llm_enabled %}disabled{% endif %}>{{ t('import.start') }}</button>
-    </fieldset>
-  </form>
-  <form class="edit" method="post" action="/import">
-    <fieldset>
-      <legend>{{ t('import.from_text') }}</legend>
-      <div class="field">
-        <label for="text">{{ t('import.text_label') }}</label>
-        <textarea id="text" name="text" rows="8" placeholder="{{ t('import.text_hint') }}">{{ text }}</textarea>
-      </div>
-      <button class="btn primary" type="submit" {% if not llm_enabled %}disabled{% endif %}>{{ t('import.start') }}</button>
-    </fieldset>
-  </form>
-</div>
+<form class="edit import-form" method="post" action="/import" enctype="multipart/form-data">
+  <fieldset class="sources">
+    <legend>{{ t('import.source_label') }}</legend>
+    <div class="tabs" role="radiogroup">
+      {% for key, label in [('url', 'import.from_url'), ('text', 'import.from_text'), ('image', 'import.from_image')] %}
+      <label class="tab"><input type="radio" name="source" value="{{ key }}" {% if source == key %}checked{% endif %}> {{ t(label) }}</label>
+      {% endfor %}
+    </div>
+    <div class="panel" data-source="url">
+      <label for="url">{{ t('import.url_label') }}</label>
+      <input type="url" id="url" name="url" value="{{ url }}" placeholder="https://" inputmode="url" autocomplete="off">
+    </div>
+    <div class="panel" data-source="text">
+      <label for="text">{{ t('import.text_label') }}</label>
+      <textarea id="text" name="text" rows="8" placeholder="{{ t('import.text_hint') }}">{{ text }}</textarea>
+    </div>
+    <div class="panel" data-source="image">
+      <label for="images">{{ t('import.images_label') }}</label>
+      <input type="file" id="images" name="images" accept="image/*" multiple>
+      <p class="muted">{{ t('import.images_hint', n=max_images) }}</p>
+    </div>
+  </fieldset>
+  <div class="field">
+    <label for="instructions">{{ t('import.instructions_label') }}</label>
+    <textarea id="instructions" name="instructions" rows="2" maxlength="2000"
+              placeholder="{{ t('import.instructions_hint') }}">{{ instructions }}</textarea>
+  </div>
+  <button class="btn primary" type="submit" {% if not llm_enabled %}disabled{% endif %}>{{ t('import.start') }}</button>
+</form>
 
 {% if recent %}
 <h2>{{ t('import.recent') }}</h2>
@@ -35,7 +42,7 @@
   {% for d in recent %}
   <li>
     <a href="{{ '/recipes/%d' % d.recipe_id if d.status == 'saved' and d.recipe_id else '/import/%d' % d.id }}">
-      {{ (d.draft or {}).get('title') or d.url or (d.source_text or '')[:60] }}
+      {{ (d.draft or {}).get('title') or d.url or (t('import.from_image') if d.kind == 'image' else (d.source_text or '')[:60]) }}
     </a>
     <span class="badge s-{{ d.status }}">{{ t('import.status.' ~ d.status) }}</span>
     <span class="muted">{{ fmt_date(d.created_at) }}</span>

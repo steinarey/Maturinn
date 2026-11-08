@@ -13,6 +13,7 @@ from app.db import get_session
 from app.i18n import format_qty, parse_qty
 from app.models import Recipe
 from app.services import ingredients as ing_svc
+from app.services import links as link_svc
 from app.services import photos as photo_svc
 from app.services import recipes as recipe_svc
 from app.services import search as search_svc
@@ -79,8 +80,13 @@ def read(recipe_id: int, request: Request, session: Session = Depends(get_sessio
     recipe = recipe_svc.load(session, recipe_id)
     if not recipe:
         raise HTTPException(404)
+    ids = link_svc.recipe_ids(recipe.description, *(s.text for s in recipe.steps),
+                              *(i.note for i in recipe.ingredients))
+    existing = link_svc.existing_ids(session, ids)
     return templates.TemplateResponse(request, "recipe_read.html", {
         "r": recipe, "tag_name": recipe_svc.tag_name, "thumb": photo_svc.thumb_path,
+        "rich": lambda text: link_svc.render(text, existing),
+        "linked_from": link_svc.linked_from(session, recipe.id),
     })
 
 
@@ -304,3 +310,12 @@ def ingredient_options(request: Request, ing_name: str = "", session: Session = 
     """<option>s for the shared ingredient <datalist> while typing."""
     sugg = ing_svc.suggest(session, ing_name, limit=8) if len(ing_name.strip()) >= 2 else []
     return templates.TemplateResponse(request, "partials/ing_options.html", {"suggestions": sugg})
+
+
+@router.get("/fragments/recipe-links", response_class=HTMLResponse)
+def recipe_links(request: Request, q: str = "", exclude: int | None = None,
+                 session: Session = Depends(get_session)):
+    """Choices for the "link a recipe" picker in the write view."""
+    found = [r for r in search_svc.search(session, q, limit=12).recipes if r.id != exclude]
+    return templates.TemplateResponse(request, "partials/recipe_links.html", {
+        "found": found, "link": link_svc.recipe_link})

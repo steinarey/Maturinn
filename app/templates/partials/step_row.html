@@ -7,6 +7,7 @@
     <div class="step-photos" id="photos-{{ row.key }}">
       {% with key=row.key, photos=row.photos %}{% include "partials/photos.html" %}{% endwith %}
     </div>
+    <button class="btn small link-btn" type="button" data-picker>🔗 {{ t('edit.link_recipe') }}</button>
     <label class="upload btn small">📷 {{ t('edit.add_photos') }}
       <input type="file" name="files" accept="image/*" multiple
              hx-post="/fragments/photo" hx-encoding="multipart/form-data" hx-trigger="change"

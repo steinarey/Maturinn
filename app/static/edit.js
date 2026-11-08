@@ -31,6 +31,39 @@
     }
   });
 
+  // "Link a recipe" picker: inserts [title](recipe:ID) at the cursor of the field it was opened from.
+  // With text selected, the selection becomes the link label.
+  const picker = document.getElementById('link-picker');
+  let linkTarget = null;
+  let lastFocused = null;  // where the cursor was before clicking the link button
+  document.addEventListener('focusin', e => { if (e.target.matches('textarea')) lastFocused = e.target; });
+  document.addEventListener('click', e => {
+    const open = e.target.closest('[data-picker]');
+    if (open && picker) {
+      linkTarget = open.closest('.row, .field').querySelector('textarea');
+      picker.showModal();
+      const q = picker.querySelector('input[type=search]');
+      q.value = '';
+      q.focus();
+      htmx.trigger(q, 'input');
+      return;
+    }
+    const pick = e.target.closest('.pick');
+    if (pick && linkTarget) {
+      const { value } = linkTarget;
+      // Cursor position if the user was typing in this field; otherwise append.
+      let [a, b] = lastFocused === linkTarget
+        ? [linkTarget.selectionStart, linkTarget.selectionEnd] : [value.length, value.length];
+      let link = pick.dataset.link;
+      if (a === value.length && value && !/\s$/.test(value)) link = ' ' + link;
+      if (b > a) link = link.replace(/^\[[^\]]*\]/, `[${value.slice(a, b).replace(/[\[\]\n]/g, '')}]`);
+      linkTarget.value = value.slice(0, a) + link + value.slice(b);
+      picker.close();
+      linkTarget.focus();
+      linkTarget.setSelectionRange(a + link.length, a + link.length);
+    }
+  });
+
   // New rows: focus the first text field.
   document.body.addEventListener('htmx:afterSwap', e => {
     const list = e.detail.target;

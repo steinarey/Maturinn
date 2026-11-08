@@ -9,8 +9,9 @@ class FakeLLM:
         self.prompts: list[tuple[str, str]] = []
 
     def run_tools(self, system: str, user: str, tools: list[ToolSpec],
-                  handler: ToolHandler, max_rounds: int = 25) -> None:
+                  handler: ToolHandler, max_rounds: int = 25, images=None) -> None:
         self.prompts.append((system, user))
+        self.images = images or []
         names = {t.name for t in tools}
         for i, (name, args) in enumerate(self.calls):
             assert name in names, f"unknown tool {name}"

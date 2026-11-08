@@ -26,33 +26,57 @@ def _get(session: Session, draft_id: int) -> ImportDraft:
     return row
 
 
+def _form(request: Request, session: Session, errors: dict | None = None, status: int = 200, **values):
+    recent = session.execute(select(ImportDraft).order_by(ImportDraft.id.desc()).limit(10)).scalars().all()
+    ctx = {"recent": recent, "errors": errors or {}, "source": "url", "url": "", "text": "", "instructions": "",
+           "max_images": importer.MAX_IMAGES}
+    ctx.update(values)
+    return templates.TemplateResponse(request, "import.html", ctx, status_code=status)
+
+
 @router.get("", response_class=HTMLResponse)
 def index(request: Request, session: Session = Depends(get_session)):
-    recent = session.execute(select(ImportDraft).order_by(ImportDraft.id.desc()).limit(10)).scalars().all()
-    return templates.TemplateResponse(request, "import.html", {
-        "recent": recent, "errors": {}, "url": "", "text": "",
-        "provider": get_settings().provider, "model": get_settings().llm,
-    })
+    return _form(request, session)
 
 
 @router.post("")
 async def create(request: Request, session: Session = Depends(get_session)):
     form = await request.form()
+    source = form.get("source") or ("url" if form.get("url") else "text")
     url = (form.get("url") or "").strip()
     text = (form.get("text") or "").strip()
-    errors = {}
-    if url and not url.startswith(("http://", "https://")):
-        url = "https://" + url
-    if not url and not text:
-        errors["form"] = "import.need_input"
-    if errors or not get_settings().llm_configured:
-        recent = session.execute(select(ImportDraft).order_by(ImportDraft.id.desc()).limit(10)).scalars().all()
-        return templates.TemplateResponse(request, "import.html", {
-            "recent": recent, "errors": errors or {"form": "import.no_llm"}, "url": url, "text": text,
-            "provider": get_settings().provider, "model": get_settings().llm,
-        }, status_code=422)
-    row = ImportDraft(kind="url" if url else "text", url=url or None, source_text=None if url else text,
-                      status="pending", events=[])
+    instructions = (form.get("instructions") or "").strip()[:2000]
+    uploads = [f for f in form.getlist("images") if getattr(f, "filename", "")]
+    values = {"source": source, "url": url, "text": text, "instructions": instructions}
+
+    if not get_settings().llm_configured:
+        return _form(request, session, {"form": "import.no_llm"}, 422, **values)
+    if source == "url":
+        if not url:
+            return _form(request, session, {"form": "import.need_input"}, 422, **values)
+        if not url.startswith(("http://", "https://")):
+            url = "https://" + url
+        row = ImportDraft(kind="url", url=url)
+    elif source == "text":
+        if not text:
+            return _form(request, session, {"form": "import.need_input"}, 422, **values)
+        row = ImportDraft(kind="text", source_text=text)
+    elif source == "image":
+        if not uploads:
+            return _form(request, session, {"form": "import.need_images"}, 422, **values)
+        if len(uploads) > importer.MAX_IMAGES:
+            return _form(request, session, {"form": "import.too_many_images"}, 422, **values)
+        paths = []
+        for f in uploads:
+            try:
+                paths.append(photo_svc.save_scaled(f.file, "imports", 1600))
+            except photo_svc.BadImage:
+                return _form(request, session, {"form": "import.bad_image"}, 422, **values)
+        row = ImportDraft(kind="image", images=paths)
+    else:
+        raise HTTPException(400)
+    row.instructions = instructions
+    row.status, row.events = "pending", []
     session.add(row)
     session.commit()
     return RedirectResponse(f"/import/{row.id}", status_code=303)
@@ -112,8 +136,11 @@ def delete(draft_id: int, session: Session = Depends(get_session)):
     row = _get(session, draft_id)
     if row.status in RUNNING and row.status != "pending":
         raise HTTPException(409)
+    images = list(row.images or [])
     session.delete(row)
     session.commit()
+    for rel in images:  # uploaded source photos belong to the draft only
+        (get_settings().photos_dir / rel).unlink(missing_ok=True)
     return RedirectResponse("/import", status_code=303)
 
 

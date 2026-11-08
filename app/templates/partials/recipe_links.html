@@ -1,0 +1,5 @@
+{% for r in found %}
+<li><button class="btn small pick" type="button" data-link="{{ link(r.id, r.title) }}" data-title="{{ r.title }}">{{ r.title }}</button></li>
+{% else %}
+<li class="muted">{{ t('edit.link_none') }}</li>
+{% endfor %}

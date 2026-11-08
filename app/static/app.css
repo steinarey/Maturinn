@@ -215,3 +215,26 @@ th { color: var(--muted); font-weight: 500; font-size: .9rem; }
 .ev.err .ico { background: var(--danger); color: var(--bg); }
 @keyframes pulse { 50% { opacity: .2; } }
 @media (prefers-reduced-motion: reduce) { .ev.live::after { animation: none; } }
+
+/* Import source tabs: show the panel for the checked source (all panels show without :has support) */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.tab { margin: 0; cursor: pointer; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; color: var(--text); font-size: .95rem; }
+.tab input { accent-color: var(--accent); margin: 0 4px 0 0; }
+.tab:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.sources:has(input[value=url]:checked) .panel:not([data-source=url]),
+.sources:has(input[value=text]:checked) .panel:not([data-source=text]),
+.sources:has(input[value=image]:checked) .panel:not([data-source=image]) { display: none; }
+.panel input[type=file] { width: 100%; padding: 10px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); }
+.src-images { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.src-images img { height: 90px; width: auto; border-radius: 6px; }
+
+/* Recipe links */
+a.rlink { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.used-in a { color: var(--accent); }
+.link-btn { margin-top: 6px; margin-right: 6px; }
+dialog { background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius);
+         width: min(32rem, calc(100vw - 32px)); padding: 18px; }
+dialog::backdrop { background: rgb(0 0 0 / .55); }
+.picker h2 { margin-top: 0; }
+.link-results { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 6px; max-height: 50vh; overflow: auto; }
+.link-results .pick { width: 100%; justify-content: flex-start; text-align: left; }

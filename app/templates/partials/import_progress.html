@@ -7,6 +7,11 @@
         <li class="ev status {% if last %}live{% endif %}">{{ t('import.ev.status.' ~ ev.s) }}</li>
       {% elif ev.t == 'scraped' %}
         <li class="ev">{{ t('import.ev.scraped.' ~ ev.method) }}</li>
+      {% elif ev.t == 'images' %}
+        <li class="ev"><span class="ico" aria-hidden="true">▣</span>{{ t('import.ev.images') }}</li>
+      {% elif ev.t == 'lookup' %}
+        <li class="ev {% if last %}live{% endif %}"><span class="ico" aria-hidden="true">⌕</span>{{ t('import.ev.lookup', q=ev.q) }}
+          <span class="muted">{{ t('import.ev.lookup_found', n=ev.found) }}</span></li>
       {% elif ev.t == 'details' %}
         <li class="ev {% if last %}live{% endif %}"><span class="ico" aria-hidden="true">✎</span>{{ t('import.ev.details', title=ev.title) }}</li>
       {% elif ev.t == 'section' %}

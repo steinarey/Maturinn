@@ -37,3 +37,18 @@ def save_upload(fileobj: BinaryIO) -> str:
 
 def thumb_path(path: str) -> str:
     return path[:-4] + "_t.jpg" if path.endswith(".jpg") else path
+
+
+def save_scaled(fileobj: BinaryIO, subdir: str, max_side: int) -> str:
+    """A single resized JPEG under PHOTOS_DIR/<subdir>/ (no thumbnail). Returns the relative path."""
+    try:
+        img = ImageOps.exif_transpose(Image.open(fileobj))
+    except (UnidentifiedImageError, OSError) as e:
+        raise BadImage(str(e)) from e
+    img = img.convert("RGB")
+    img.thumbnail((max_side, max_side))
+    rel = Path(subdir) / f"{uuid.uuid4().hex}.jpg"
+    dest = get_settings().photos_dir / rel
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    img.save(dest, "JPEG", quality=88)
+    return rel.as_posix()

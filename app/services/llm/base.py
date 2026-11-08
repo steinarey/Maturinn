@@ -17,6 +17,12 @@ class ToolSpec:
 
 
 @dataclass
+class Image:
+    data: bytes
+    mime_type: str = "image/jpeg"
+
+
+@dataclass
 class ToolCall:
     id: str
     name: str
@@ -40,7 +46,7 @@ ToolHandler = Callable[[ToolCall], str]
 
 class LLMProvider(Protocol):
     def run_tools(self, system: str, user: str, tools: list[ToolSpec],
-                  handler: ToolHandler, max_rounds: int = 25) -> None:
+                  handler: ToolHandler, max_rounds: int = 25, images: list[Image] | None = None) -> None:
         """Let the model call tools until it stops. Each call goes through `handler`,
-        whose return value is sent back as the tool result."""
+        whose return value is sent back as the tool result. `images` go with the user message."""
         ...

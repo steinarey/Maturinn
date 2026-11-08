@@ -19,7 +19,7 @@
   {% if r.original_lang != lang %}
     <p class="muted">{{ t('read.written_in.' ~ r.original_lang) }}</p>
   {% endif %}
-  {% if r.description %}<p class="desc">{{ r.description }}</p>{% endif %}
+  {% if r.description %}<p class="desc">{{ rich(r.description) }}</p>{% endif %}
 
   <div class="cols {% if r.ingredients or r.items %}has-side{% endif %}">
     {% if r.ingredients or r.items %}
@@ -33,7 +33,7 @@
         {% endif %}
         <li class="ing">
           <span class="q" {% if ri.quantity is not none %}data-qty="{{ ri.quantity }}" data-unit="{{ ri.unit }}"{% endif %}>{{ qty(ri.quantity) }} {{ ri.unit }}</span>
-          <span><span class="name">{{ ri.ingredient.name_in(lang) }}</span>{% if ri.note %}<span class="note">, {{ ri.note }}</span>{% endif %}</span>
+          <span><span class="name">{{ ri.ingredient.name_in(lang) }}</span>{% if ri.note %}<span class="note">, {{ rich(ri.note) }}</span>{% endif %}</span>
         </li>
         {% endfor %}
       </ul>
@@ -51,7 +51,7 @@
       <ol class="steps">
         {% for s in r.steps %}
         <li>
-          {% if s.text %}<div class="text">{{ s.text }}</div>{% endif %}
+          {% if s.text %}<div class="text">{{ rich(s.text) }}</div>{% endif %}
           {% if s.photos %}
           <div class="photos">
             {% for p in s.photos %}
@@ -65,6 +65,10 @@
         </li>
         {% endfor %}
       </ol>
+      {% endif %}
+      {% if linked_from %}
+      <p class="muted used-in">{{ t('read.used_in') }}:
+        {% for o in linked_from %}<a href="/recipes/{{ o.id }}">{{ o.title }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</p>
       {% endif %}
       {% if r.source_url %}<p class="muted">{{ t('recipe.source') }}: <a href="{{ r.source_url }}" rel="noopener noreferrer">{{ r.source_url | truncate(60) }}</a></p>{% endif %}
     </div>

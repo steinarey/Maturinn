@@ -1,4 +1,5 @@
 """LangChain implementation of LLMProvider: Anthropic, OpenAI or Gemini."""
+import base64
 import json
 import re
 
@@ -7,7 +8,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
 from app.config import Settings
 from app.services.llm.base import (
-    LLMError, StopRun, ToolCall, ToolError, ToolHandler, ToolSpec,
+    Image, LLMError, StopRun, ToolCall, ToolError, ToolHandler, ToolSpec,
 )
 
 # Stop reasons that mean the reply is unusable, across providers.
@@ -44,13 +45,20 @@ class LangChainLLM:
         self.chat = chat
 
     def run_tools(self, system: str, user: str, tools: list[ToolSpec],
-                  handler: ToolHandler, max_rounds: int = 25) -> None:
+                  handler: ToolHandler, max_rounds: int = 25, images: list[Image] | None = None) -> None:
         model = self.chat.bind_tools([
             {"type": "function", "function": {"name": t.name, "description": t.description,
                                               "parameters": t.parameters}}
             for t in tools
         ])
-        messages = [SystemMessage(system), HumanMessage(user)]
+        if images:
+            # LangChain standard content blocks; each provider package converts them.
+            content = [{"type": "image", "base64": base64.b64encode(i.data).decode("ascii"),
+                        "mime_type": i.mime_type} for i in images]
+            human = HumanMessage(content=[*content, {"type": "text", "text": user}])
+        else:
+            human = HumanMessage(user)
+        messages = [SystemMessage(system), human]
         for _ in range(max_rounds):
             try:
                 ai = model.invoke(messages)

@@ -28,7 +28,10 @@
       <h2>{{ t('recipe.ingredients') }}</h2>
       <ul class="ingredients">
         {% for ri in r.ingredients %}
-        <li>
+        {% if ri.section and (loop.first or loop.previtem.section != ri.section) %}
+        <li class="sec"><h3>{{ ri.section }}</h3></li>
+        {% endif %}
+        <li class="ing">
           <span class="q" {% if ri.quantity is not none %}data-qty="{{ ri.quantity }}" data-unit="{{ ri.unit }}"{% endif %}>{{ qty(ri.quantity) }} {{ ri.unit }}</span>
           <span><span class="name">{{ ri.ingredient.name_in(lang) }}</span>{% if ri.note %}<span class="note">, {{ ri.note }}</span>{% endif %}</span>
         </li>

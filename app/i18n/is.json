@@ -125,5 +125,9 @@
   "import.paste_instead": "Líma inn texta í staðinn",
   "import.open_recipe": "Opna uppskrift",
   "import.review_title": "Yfirfara innflutning",
-  "import.review_hint": "Ekkert er vistað fyrr en þú smellir á Vista. Lagaðu það sem þarf."
+  "import.review_hint": "Ekkert er vistað fyrr en þú smellir á Vista. Lagaðu það sem þarf.",
+  "edit.add_section": "Bæta við kafla",
+  "edit.section": "Kafli",
+  "edit.section_placeholder": "Heiti kafla, t.d. Deig",
+  "import.ev.section": "Kafli: {name}"
 }

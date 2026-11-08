@@ -9,6 +9,8 @@ Running list. Status: **done**, **partial**, **planned**.
 | UI i18n (is default, en) | done | JSON catalogs, cookie switcher, decimal comma in `is` |
 | Dark theme (default) + light toggle | done | Cookie `theme` |
 | Write view | done | Ingredients (qty/unit/name/note), "you'll need" items, steps; drag to reorder; tags; servings; language |
+| Ingredient sections | done | Named groups (e.g. Sveskjumauk / Deig) as draggable heading rows; headings in read view; import tool `start_section` |
+| Step sections | planned | Same idea for method steps (e.g. "Samsetning") |
 | Step photos | done | Upload to `PHOTOS_DIR`, resized to 2000 px + 640 px thumbnail, captions |
 | Read view | done | Title → ingredients → you'll need → steps with photos; servings scaler; tap to check off; keep-screen-on |
 | Canonical ingredients | done | Names per language + aliases, groups (parent), merge, inflection-aware matching |
@@ -27,5 +29,5 @@ Running list. Status: **done**, **partial**, **planned**.
 - Photos removed from a recipe stay on disk (no cleanup of orphaned files yet).
 - Units are free text and not translated ("stk" stays "stk" in the English UI).
 - Quantities in the read view scale linearly; no unit conversion yet.
-- Import has only been exercised with a scripted LLM in tests; no live provider run yet (no API key was configured).
+- Import drafts can't be deleted from the UI yet (route exists, no button).
 - Import URL check resolves DNS before fetching; a DNS-rebinding host could still slip through.

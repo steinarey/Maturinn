@@ -1,6 +1,7 @@
 {% set n = loop.index0 if loop is defined else 0 %}
 <li class="row ing" {% if errors['ing_%d' % n] %}aria-invalid="true"{% endif %}>
   <span class="handle" aria-hidden="true">⠿</span>
+  <input type="hidden" name="row_kind" value="ing">
   <input type="hidden" name="ing_id" value="{{ row.id }}">
   <input type="text" name="ing_qty" value="{{ row.qty }}" inputmode="decimal" placeholder="{{ t('recipe.quantity') }}" aria-label="{{ t('recipe.quantity') }}">
   <input type="text" name="ing_unit" value="{{ row.unit }}" placeholder="{{ t('recipe.unit') }}" aria-label="{{ t('recipe.unit') }}">

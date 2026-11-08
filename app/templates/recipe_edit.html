@@ -49,10 +49,15 @@
     <legend>{{ t('recipe.ingredients') }}</legend>
     <p class="muted" style="margin-top:0">{{ t('edit.ingredients_hint') }}</p>
     <ul class="rows sortable" id="ing-rows">
-      {% for row in form.ingredients %}{% include "partials/ing_row.html" %}{% endfor %}
+      {% for row in form.ingredients %}
+        {% if row.kind == 'sec' %}{% include "partials/sec_row.html" %}{% else %}{% include "partials/ing_row.html" %}{% endif %}
+      {% endfor %}
     </ul>
     <datalist id="ing-options"></datalist>
-    <button class="btn small" type="button" hx-get="/fragments/ingredient-row" hx-target="#ing-rows" hx-swap="beforeend">+ {{ t('edit.add_ingredient') }}</button>
+    <div class="actions">
+      <button class="btn small" type="button" hx-get="/fragments/ingredient-row" hx-target="#ing-rows" hx-swap="beforeend">+ {{ t('edit.add_ingredient') }}</button>
+      <button class="btn small" type="button" hx-get="/fragments/section-row" hx-target="#ing-rows" hx-swap="beforeend">+ {{ t('edit.add_section') }}</button>
+    </div>
   </fieldset>
 
   <fieldset>

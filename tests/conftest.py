@@ -11,6 +11,9 @@ os.environ.setdefault("DATABASE_URL", "postgresql://maturinn:maturinn@localhost:
 os.environ["DB_SCHEMA"] = os.environ.get("TEST_DB_SCHEMA", "maturinn_test")
 os.environ["PHOTOS_DIR"] = tempfile.mkdtemp(prefix="maturinn-photos-")
 os.environ["WORKER_ENABLED"] = "false"
+# Never reach a real LLM provider from tests, whatever .env says.
+for _k in ("PROVIDER", "LLM", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"):
+    os.environ[_k] = ""
 
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402

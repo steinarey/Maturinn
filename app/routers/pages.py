@@ -96,18 +96,30 @@ def form_from_input(data: recipe_svc.RecipeIn, lang: str) -> dict:
         "title": data.title, "description": data.description,
         "servings": data.servings or "", "original_lang": data.original_lang,
         "source_url": data.source_url or "", "tags": ", ".join(data.tags),
-        "ingredients": [{"id": i.id or "", "qty": format_qty(i.quantity, lang), "unit": i.unit,
-                         "name": i.name, "note": i.note} for i in data.ingredients],
+        "ingredients": ingredient_rows(data.ingredients, lang),
         "items": [{"id": i.id or "", "name": i.name} for i in data.items],
         "steps": [{"key": _key(), "id": s.id or "", "text": s.text,
                    "photos": [p.model_dump() for p in s.photos]} for s in data.steps],
     }
 
 
+def ingredient_rows(ingredients: list[recipe_svc.IngredientIn], lang: str) -> list[dict]:
+    """Ingredient rows for the edit view, with a heading row wherever the section changes."""
+    rows, current = [], ""
+    for i in ingredients:
+        if i.section != current:
+            current = i.section
+            if current:
+                rows.append({"kind": "sec", "name": current})
+        rows.append({"kind": "ing", "id": i.id or "", "qty": format_qty(i.quantity, lang), "unit": i.unit,
+                     "name": i.name, "note": i.note})
+    return rows
+
+
 def blank_form(lang: str) -> dict:
     return {
         "title": "", "description": "", "servings": "", "original_lang": lang, "source_url": "",
-        "tags": "", "ingredients": [{"id": "", "qty": "", "unit": "", "name": "", "note": ""}],
+        "tags": "", "ingredients": [{"kind": "ing", "id": "", "qty": "", "unit": "", "name": "", "note": ""}],
         "items": [], "steps": [{"key": _key(), "id": "", "text": "", "photos": []}],
     }
 
@@ -116,8 +128,19 @@ def parse_form(form: FormData) -> tuple[dict, recipe_svc.RecipeIn | None, dict[s
     """Returns (view model for re-render, validated input or None, errors)."""
     errors: dict[str, str] = {}
     g = form.getlist
-    ings = [{"id": i, "qty": q, "unit": u, "name": n, "note": no}
-            for i, q, u, n, no in zip(g("ing_id"), g("ing_qty"), g("ing_unit"), g("ing_name"), g("ing_note"))]
+    ing_fields = [{"kind": "ing", "id": i, "qty": q, "unit": u, "name": n, "note": no}
+                  for i, q, u, n, no in zip(g("ing_id"), g("ing_qty"), g("ing_unit"), g("ing_name"), g("ing_note"))]
+    # Ingredient and section-heading rows share one list; row_kind gives their DOM order.
+    kinds = g("row_kind") or ["ing"] * len(ing_fields)
+    ing_iter, sec_iter = iter(ing_fields), iter(g("sec_name"))
+    ings = []
+    for kind in kinds:
+        if kind == "sec":
+            ings.append({"kind": "sec", "name": next(sec_iter, "")})
+        else:
+            row = next(ing_iter, None)
+            if row is not None:
+                ings.append(row)
     items = [{"id": i, "name": n} for i, n in zip(g("item_id"), g("item_name"))]
     steps = []
     for key, sid, txt in zip(g("step_key"), g("step_id"), g("step_text")):
@@ -132,7 +155,11 @@ def parse_form(form: FormData) -> tuple[dict, recipe_svc.RecipeIn | None, dict[s
     }
 
     parsed_ings = []
+    section = ""
     for n, row in enumerate(ings):
+        if row["kind"] == "sec":
+            section = row["name"].strip()
+            continue
         if not row["name"].strip():
             if row["qty"].strip() or row["unit"].strip():
                 errors[f"ing_{n}"] = "error.ingredient_name"
@@ -144,7 +171,7 @@ def parse_form(form: FormData) -> tuple[dict, recipe_svc.RecipeIn | None, dict[s
             continue
         parsed_ings.append(recipe_svc.IngredientIn(
             id=int(row["id"]) if row["id"].isdigit() else None, quantity=qty,
-            unit=row["unit"], name=row["name"], note=row["note"]))
+            unit=row["unit"], name=row["name"], note=row["note"], section=section))
 
     servings = vm["servings"].strip()
     if servings and not servings.isdigit():
@@ -231,7 +258,8 @@ def delete(recipe_id: int, session: Session = Depends(get_session)):
 @router.get("/fragments/{kind}-row", response_class=HTMLResponse)
 def blank_row(kind: str, request: Request):
     rows = {
-        "ingredient": ("partials/ing_row.html", {"row": {"id": "", "qty": "", "unit": "", "name": "", "note": ""}}),
+        "ingredient": ("partials/ing_row.html", {"row": {"kind": "ing", "id": "", "qty": "", "unit": "", "name": "", "note": ""}}),
+        "section": ("partials/sec_row.html", {"row": {"kind": "sec", "name": ""}}),
         "item": ("partials/item_row.html", {"row": {"id": "", "name": ""}}),
         "step": ("partials/step_row.html", {"row": {"key": _key(), "id": "", "text": "", "photos": []}}),
     }

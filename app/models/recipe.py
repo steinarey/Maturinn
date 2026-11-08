@@ -121,6 +121,9 @@ class RecipeIngredient(Base):
     quantity: Mapped[Decimal | None] = mapped_column(Numeric(12, 3))
     unit: Mapped[str] = mapped_column(Text, default="")
     note: Mapped[str] = mapped_column(Text, default="")
+    # Optional group heading, e.g. "Deig" / "Sveskjumauk". Consecutive rows with the
+    # same section are shown under one heading. Empty = no heading.
+    section: Mapped[str] = mapped_column(Text, default="", server_default="")
     position: Mapped[int] = mapped_column(Integer, default=0)
     # Nutrition phase: per-row match to the food database.
     food_id: Mapped[str | None] = mapped_column(Text)
@@ -211,6 +214,7 @@ class RecipeIngredientTranslation(Base):
     )
     lang: Mapped[str] = mapped_column(LANG, primary_key=True)
     note: Mapped[str] = mapped_column(Text)
+    section: Mapped[str] = mapped_column(Text, default="", server_default="")
     is_machine: Mapped[bool] = mapped_column(Boolean, default=True)
     source_hash: Mapped[str | None] = mapped_column(Text)
 

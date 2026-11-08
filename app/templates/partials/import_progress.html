@@ -9,6 +9,8 @@
         <li class="ev">{{ t('import.ev.scraped.' ~ ev.method) }}</li>
       {% elif ev.t == 'details' %}
         <li class="ev {% if last %}live{% endif %}"><span class="ico" aria-hidden="true">✎</span>{{ t('import.ev.details', title=ev.title) }}</li>
+      {% elif ev.t == 'section' %}
+        <li class="ev sec {% if last %}live{% endif %}"><span class="ico" aria-hidden="true">§</span>{{ t('import.ev.section', name=ev.name) }}</li>
       {% elif ev.t == 'ingredient' %}
         <li class="ev {% if last %}live{% endif %}"><span class="ico" aria-hidden="true">+</span>{{ t('import.ev.ingredient', name=ev.name) }}
           {% if ev.qty is not none or ev.unit %}<span class="muted">{{ qty(ev.qty) }} {{ ev.unit }}</span>{% endif %}

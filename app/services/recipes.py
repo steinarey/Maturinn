@@ -26,6 +26,7 @@ class IngredientIn(BaseModel):
     unit: str = ""
     name: str
     note: str = ""
+    section: str = ""  # group heading, e.g. "Deig"; empty = none
 
 
 class ItemIn(BaseModel):
@@ -145,6 +146,7 @@ def save(session: Session, data: RecipeIn, recipe: Recipe | None = None) -> Reci
         row.quantity = item.quantity
         row.unit = item.unit.strip()
         row.note = item.note.strip()
+        row.section = item.section.strip()
         row.position = pos
         rows.append(row)
     recipe.ingredients = rows
@@ -190,7 +192,7 @@ def to_input(recipe: Recipe) -> RecipeIn:
         tags=[tag_name(t, lang) for t in recipe.tags],
         ingredients=[
             IngredientIn(id=r.id, quantity=r.quantity, unit=r.unit,
-                         name=r.ingredient.name_in(lang), note=r.note)
+                         name=r.ingredient.name_in(lang), note=r.note, section=r.section)
             for r in recipe.ingredients
         ],
         items=[ItemIn(id=i.id, name=i.name) for i in recipe.items],

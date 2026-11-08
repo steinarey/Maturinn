@@ -18,7 +18,7 @@
     });
   }
 
-  for (const li of document.querySelectorAll('.ingredients li')) {
+  for (const li of document.querySelectorAll('.ingredients li.ing')) {
     li.addEventListener('click', () => li.classList.toggle('checked'));
   }
   for (const li of document.querySelectorAll('.steps > li')) {

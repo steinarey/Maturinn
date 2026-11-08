@@ -125,5 +125,9 @@
   "import.paste_instead": "Paste text instead",
   "import.open_recipe": "Open recipe",
   "import.review_title": "Review import",
-  "import.review_hint": "Nothing is saved until you click Save. Fix anything that needs it."
+  "import.review_hint": "Nothing is saved until you click Save. Fix anything that needs it.",
+  "edit.add_section": "Add section",
+  "edit.section": "Section",
+  "edit.section_placeholder": "Section name, e.g. Dough",
+  "import.ev.section": "Section: {name}"
 }

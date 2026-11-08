@@ -1,6 +1,8 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,12 +15,33 @@ class Settings(BaseSettings):
     default_lang: str = "is"
     languages: tuple[str, ...] = ("is", "en")
 
-    # Feature flags for later phases. Off until their integrations exist.
-    llm_enabled: bool = False
+    # LLM (import now; translation and cooking guide later). Provider-agnostic via LangChain.
+    provider: Literal["anthropic", "openai", "gemini"] | None = None
+    llm: str | None = None  # model name for that provider, e.g. claude-haiku-5-5, gpt-5.1, gemini-3.7-flash
     anthropic_api_key: str | None = None
-    llm_model: str | None = None
+    openai_api_key: str | None = None
+    gemini_api_key: str | None = None
+
+    # Background worker that processes imports. Tests turn it off.
+    worker_enabled: bool = True
+
     shopping_enabled: bool = False
 
+    @field_validator("provider", "llm", "anthropic_api_key", "openai_api_key", "gemini_api_key", mode="before")
+    @classmethod
+    def _blank_is_none(cls, v):
+        return None if isinstance(v, str) and not v.strip() else v
+
+    def provider_key(self) -> str | None:
+        return {
+            "anthropic": self.anthropic_api_key,
+            "openai": self.openai_api_key,
+            "gemini": self.gemini_api_key,
+        }.get(self.provider or "")
+
+    @property
+    def llm_configured(self) -> bool:
+        return bool(self.provider and self.llm and self.provider_key())
 
 @lru_cache
 def get_settings() -> Settings:

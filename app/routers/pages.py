@@ -170,18 +170,27 @@ def parse_form(form: FormData) -> tuple[dict, recipe_svc.RecipeIn | None, dict[s
 
 
 def _edit(request: Request, form: dict, recipe: Recipe | None = None,
-          errors: dict | None = None, status: int = 200):
+          errors: dict | None = None, status: int = 200, draft=None):
     return templates.TemplateResponse(request, "recipe_edit.html", {
         "form": form, "recipe": recipe, "errors": errors or {}, "thumb": photo_svc.thumb_path,
+        "draft": draft,
     }, status_code=status)
 
 
 @router.post("/recipes")
 async def create(request: Request, session: Session = Depends(get_session)):
-    vm, data, errors = parse_form(await request.form())
+    form = await request.form()
+    vm, data, errors = parse_form(form)
+    draft = None
+    if form.get("draft_id", "").isdigit():
+        from app.models import ImportDraft
+        draft = session.get(ImportDraft, int(form["draft_id"]))
     if errors:
-        return _edit(request, vm, errors=errors, status=422)
+        return _edit(request, vm, errors=errors, status=422, draft=draft)
     recipe = recipe_svc.save(session, data)
+    if draft:
+        from app.routers.imports import mark_saved
+        mark_saved(session, str(draft.id), recipe.id)
     session.commit()
     return RedirectResponse(f"/recipes/{recipe.id}", status_code=303)
 

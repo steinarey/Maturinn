@@ -18,10 +18,14 @@ services:
 
   app:
     build: .
-    environment:
+    env_file:
+      - path: .env        # PROVIDER, LLM and API keys
+        required: false
+    environment:          # these override .env inside compose
       DATABASE_URL: postgresql://maturinn:maturinn@db:5432/maturinn
       DB_SCHEMA: maturinn
       DEFAULT_LANG: is
+      PHOTOS_DIR: /data/photos
     ports:
       - "8000:8000"
     volumes:

@@ -1,20 +1,22 @@
-"""Deterministic provider for tests and for running without an API key."""
-from collections.abc import Iterator
-from typing import Any
-
-from app.services.llm.base import Message
+"""Scripted provider for tests: replays a fixed list of tool calls."""
+from app.services.llm.base import StopRun, ToolCall, ToolError, ToolHandler, ToolSpec
 
 
 class FakeLLM:
-    def __init__(self, json_reply: dict[str, Any] | None = None, chat_reply: str = "ok"):
-        self.json_reply = json_reply or {}
-        self.chat_reply = chat_reply
-        self.calls: list[tuple[str, Any]] = []
+    def __init__(self, calls: list[tuple[str, dict]] | None = None):
+        self.calls = calls or []
+        self.results: list[str] = []
+        self.prompts: list[tuple[str, str]] = []
 
-    def complete_json(self, system: str, prompt: str, schema: dict[str, Any]) -> dict[str, Any]:
-        self.calls.append(("complete_json", prompt))
-        return self.json_reply
-
-    def stream_chat(self, system: str, messages: list[Message]) -> Iterator[str]:
-        self.calls.append(("stream_chat", messages))
-        yield from self.chat_reply.split(" ")
+    def run_tools(self, system: str, user: str, tools: list[ToolSpec],
+                  handler: ToolHandler, max_rounds: int = 25) -> None:
+        self.prompts.append((system, user))
+        names = {t.name for t in tools}
+        for i, (name, args) in enumerate(self.calls):
+            assert name in names, f"unknown tool {name}"
+            try:
+                self.results.append(handler(ToolCall(id=f"call_{i}", name=name, args=args)))
+            except ToolError as e:
+                self.results.append(f"Error: {e}")
+            except StopRun:
+                raise

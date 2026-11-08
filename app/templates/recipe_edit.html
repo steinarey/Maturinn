@@ -2,10 +2,12 @@
 {% block title %}{{ form.title or t('edit.new_title') }} · {{ t('app.name') }}{% endblock %}
 {% block head %}<script src="/static/Sortable.min.js" defer></script>{% endblock %}
 {% block content %}
-<h1>{{ t('edit.edit_title') if recipe else t('edit.new_title') }}</h1>
+<h1>{{ t('import.review_title') if draft else (t('edit.edit_title') if recipe else t('edit.new_title')) }}</h1>
+{% if draft %}<p class="flash" role="status">{{ t('import.review_hint') }}</p>{% endif %}
 {% if errors %}<p class="flash error" role="alert">{{ t('error.form') }}</p>{% endif %}
 
 <form class="edit" method="post" action="{{ '/recipes/%d' % recipe.id if recipe else '/recipes' }}" id="recipe-form">
+  {% if draft %}<input type="hidden" name="draft_id" value="{{ draft.id }}">{% endif %}
   <fieldset>
     <legend>{{ t('edit.basics') }}</legend>
     <div class="field">
@@ -72,7 +74,7 @@
 
   <div class="actions">
     <button class="btn primary" type="submit">{{ t('action.save') }}</button>
-    <a class="btn" href="{{ '/recipes/%d' % recipe.id if recipe else '/' }}">{{ t('action.cancel') }}</a>
+    <a class="btn" href="{{ '/recipes/%d' % recipe.id if recipe else ('/import' if draft else '/') }}">{{ t('action.cancel') }}</a>
   </div>
 </form>
 

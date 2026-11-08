@@ -10,6 +10,7 @@ import tempfile
 os.environ.setdefault("DATABASE_URL", "postgresql://maturinn:maturinn@localhost:5433/maturinn")
 os.environ["DB_SCHEMA"] = os.environ.get("TEST_DB_SCHEMA", "maturinn_test")
 os.environ["PHOTOS_DIR"] = tempfile.mkdtemp(prefix="maturinn-photos-")
+os.environ["WORKER_ENABLED"] = "false"
 
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402

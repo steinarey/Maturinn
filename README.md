@@ -5,7 +5,8 @@ FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL 17, server-rendered with Jinja2 + 
 
 What works now: write/edit recipes with structured ingredients, "you'll need" items and steps with photos;
 a read view for cooking; search across both languages with has/without-ingredient filters; an ingredient
-admin page for names, aliases and groups; dark (default) and light themes; JSON API.
+admin page for names, aliases and groups; import from a URL or pasted text via an LLM; dark (default) and
+light themes; JSON API.
 See [FEATURES.md](FEATURES.md) for the running list.
 
 ## Run locally
@@ -48,7 +49,10 @@ All config is environment variables (see `.env.example`).
 | `DB_SCHEMA` | `maturinn` | All app tables live in this schema; it is created on first migration |
 | `PHOTOS_DIR` | `/data/photos` | Uploaded photos; mount a volume here |
 | `DEFAULT_LANG` | `is` | UI language when no cookie is set |
-| `LLM_ENABLED`, `ANTHROPIC_API_KEY`, `LLM_MODEL` | off | Later phases (import, translation, cooking guide) |
+| `PROVIDER` | empty | `anthropic`, `openai` or `gemini`. Empty disables LLM features |
+| `LLM` | empty | Model name for that provider, e.g. `claude-haiku-5-5`, `gpt-5.1-mini`, `gemini-3.7-flash`. For Anthropic, short forms like `haiku-5.5` are expanded to `claude-haiku-5-5` |
+| `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY` | empty | Only the key for the chosen `PROVIDER` is used |
+| `WORKER_ENABLED` | `true` | Background import worker (tests turn it off) |
 | `SHOPPING_ENABLED` | `false` | Later phase (Microsoft To Do) |
 
 ### Database permissions
@@ -85,8 +89,12 @@ Only the app container runs on Unraid; it uses your existing Postgres 17 server.
   are vendored in `app/static/` so the app works on a LAN without internet.
 - **Auth:** none in v1. Bind to your LAN. To add auth, put a reverse proxy in front (e.g. Nginx Proxy Manager with
   access lists, or Authelia/Authentik forward auth).
-- **LLM provider:** Anthropic, behind `app/services/llm/base.py` (`LLMProvider`). Not wired yet: the LLM features
-  come in later phases. A `FakeLLM` exists for tests.
+- **LLM provider:** provider-agnostic through LangChain (`langchain-anthropic`, `langchain-openai`,
+  `langchain-google-genai`). Features depend only on `app/services/llm/base.py`; the provider and model come from
+  `PROVIDER` and `LLM`. Tests use a scripted `FakeLLM` and never call a provider.
+- **Background work:** a worker thread inside the app process polls `import_draft.status` once a second. No
+  Redis/Celery. Rows are claimed with `FOR UPDATE SKIP LOCKED`. Imports interrupted by a restart are marked failed
+  and can be retried.
 - **i18n:** flat JSON catalogs in `app/i18n/{is,en}.json`, Babel for number/date formatting. Missing keys fall back
   `is` → `en` → key. A test fails if a template uses a key that isn't in the catalogs or the two catalogs differ.
 - **Theme:** dark by default; a toggle stores `light`/`dark` in a cookie.
@@ -110,6 +118,22 @@ name of its ingredient once that name is set on the ingredient.
 **Has / without** filters work on canonical ingredients, not text. "has chicken" matches any ingredient whose name
 contains the whole word *chicken*. Groups expand: put *kasjúhnetur* and *almonds* in group *hnetur/nuts* on the
 Ingredients page, and "without nuts" excludes both.
+
+## Importing recipes
+
+`/import` takes a URL or pasted text.
+
+1. **URL only:** the page is fetched (public http/https addresses only, max 5 MB, so the server can't be used to
+   reach machines on your LAN). `recipe-scrapers` reads schema.org recipe data if the page has it; otherwise
+   `trafilatura` extracts the page's main text. Pasted text skips this step.
+2. The LLM gets the text and builds the recipe by calling tools: `set_details` (title, description, servings,
+   language, tags), `add_ingredient` (quantity, unit, name, note), `add_item`, `add_step`, or `not_a_recipe`.
+   Bad arguments come back to the model as tool errors so it can retry.
+3. Each tool call updates the draft and adds a progress event. The progress page polls and renders those events
+   ("Bæti við lax 300 g", "Skrifa skref 2"), so the text comes from the tool calls, not from the model, and is in the
+   UI language.
+4. When done, the draft opens in the write view. Nothing is saved until you click Save. The recipe keeps its
+   original language; ingredient names are matched to existing canonical ingredients the same way as typed ones.
 
 ## Ingredient normalization
 

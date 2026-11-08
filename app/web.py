@@ -32,7 +32,7 @@ def _context(request: Request) -> dict:
         "t": partial(translate, lang),
         "qty": lambda v: format_qty(v, lang),
         "fmt_date": lambda v: format_date(v, lang),
-        "llm_enabled": s.llm_enabled,
+        "llm_enabled": s.llm_configured,
         "shopping_enabled": s.shopping_enabled,
     }
 

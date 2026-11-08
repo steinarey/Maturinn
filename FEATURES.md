@@ -16,8 +16,9 @@ Running list. Status: **done**, **partial**, **planned**.
 | Search | done | Full-text (simple + english) + pg_trgm; has/without ingredient filters with groups |
 | JSON API | done | `/api/recipes` CRUD + search |
 | Recipe content translation | planned | Tables exist (`*_translation`, `is_machine`, `source_hash`); LLM on demand, cached, editable |
-| Import from URL | planned | `import_draft` table exists; scraper → LLM → editable draft in write view |
+| Import from URL or pasted text | done | Scraper (schema.org / page text) → LLM tool calls → live progress → review in write view. Provider via LangChain (`PROVIDER`, `LLM`) |
 | Cooking-guide chat | planned | `LLMProvider` interface exists |
+| Import recipe photo from page | planned | Scraper finds the image URL (stored in `import_draft.raw`); not downloaded yet |
 | Nutrition via MCP food database | planned | `food_id`, `match_confidence`, `recipe_nutrition` exist; needs MCP server URL + tool names |
 | Shopping list (Microsoft To Do) | planned | `ShoppingList.add_items` stub; needs Azure setup |
 
@@ -26,3 +27,5 @@ Running list. Status: **done**, **partial**, **planned**.
 - Photos removed from a recipe stay on disk (no cleanup of orphaned files yet).
 - Units are free text and not translated ("stk" stays "stk" in the English UI).
 - Quantities in the read view scale linearly; no unit conversion yet.
+- Import has only been exercised with a scripted LLM in tests; no live provider run yet (no API key was configured).
+- Import URL check resolves DNS before fetching; a DNS-rebinding host could still slip through.

@@ -1,0 +1,41 @@
+<section id="progress" class="progress" aria-live="polite"
+  {% if running %}hx-get="/import/{{ row.id }}/progress" hx-trigger="every 1s" hx-swap="outerHTML"{% endif %}>
+  <ol class="feed">
+    {% for ev in row.events %}
+      {% set last = loop.last and running %}
+      {% if ev.t == 'status' %}
+        <li class="ev status {% if last %}live{% endif %}">{{ t('import.ev.status.' ~ ev.s) }}</li>
+      {% elif ev.t == 'scraped' %}
+        <li class="ev">{{ t('import.ev.scraped.' ~ ev.method) }}</li>
+      {% elif ev.t == 'details' %}
+        <li class="ev {% if last %}live{% endif %}"><span class="ico" aria-hidden="true">✎</span>{{ t('import.ev.details', title=ev.title) }}</li>
+      {% elif ev.t == 'ingredient' %}
+        <li class="ev {% if last %}live{% endif %}"><span class="ico" aria-hidden="true">+</span>{{ t('import.ev.ingredient', name=ev.name) }}
+          {% if ev.qty is not none or ev.unit %}<span class="muted">{{ qty(ev.qty) }} {{ ev.unit }}</span>{% endif %}
+          {% if not ev.known %}<span class="badge">{{ t('import.ev.new') }}</span>{% endif %}</li>
+      {% elif ev.t == 'item' %}
+        <li class="ev {% if last %}live{% endif %}"><span class="ico" aria-hidden="true">⚒</span>{{ t('import.ev.item', name=ev.name) }}</li>
+      {% elif ev.t == 'step' %}
+        <li class="ev {% if last %}live{% endif %}"><span class="ico" aria-hidden="true">{{ ev.n }}</span>{{ t('import.ev.step', n=ev.n) }}
+          <span class="muted snippet">{{ ev.text }}</span></li>
+      {% elif ev.t == 'done' %}
+        <li class="ev done"><span class="ico" aria-hidden="true">✓</span>{{ t('import.ev.done', ingredients=ev.ingredients, steps=ev.steps) }}</li>
+      {% elif ev.t == 'error' %}
+        <li class="ev err"><span class="ico" aria-hidden="true">!</span>{{ t('import.error.' ~ ev.code) }}
+          {% if ev.detail %}<span class="muted snippet">{{ ev.detail }}</span>{% endif %}</li>
+      {% elif ev.t == 'saved' %}
+        <li class="ev done">{{ t('import.status.saved') }}</li>
+      {% endif %}
+    {% else %}
+      <li class="ev status live">{{ t('import.ev.status.pending') }}</li>
+    {% endfor %}
+  </ol>
+  {% if row.status == 'failed' %}
+  <div class="actions">
+    <form method="post" action="/import/{{ row.id }}/retry"><button class="btn primary" type="submit">{{ t('import.retry') }}</button></form>
+    <a class="btn" href="/import">{{ t('import.paste_instead') }}</a>
+  </div>
+  {% elif row.status == 'saved' and row.recipe_id %}
+  <p><a class="btn" href="/recipes/{{ row.recipe_id }}">{{ t('import.open_recipe') }}</a></p>
+  {% endif %}
+</section>

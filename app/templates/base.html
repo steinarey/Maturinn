@@ -17,6 +17,7 @@
         {% set path = request.url.path %}
         <a href="/" {% if path == '/' %}aria-current="page"{% endif %}>{{ t('nav.recipes') }}</a>
         <a href="/recipes/new" {% if path == '/recipes/new' %}aria-current="page"{% endif %}>{{ t('nav.new') }}</a>
+        <a href="/import" {% if path.startswith('/import') %}aria-current="page"{% endif %}>{{ t('nav.import') }}</a>
         <a href="/ingredients" {% if path.startswith('/ingredients') %}aria-current="page"{% endif %}>{{ t('nav.ingredients') }}</a>
       </nav>
       <div class="prefs">

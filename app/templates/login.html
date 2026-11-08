@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ t('login.title') }} · {{ t('app.name') }}{% endblock %}
+{% block nav %}{% endblock %}
+{% block settings_chip %}{% endblock %}
+{% block content %}
+<form method="post" action="/login" class="panel login">
+  <h1>{{ t('login.title') }}</h1>
+  {% if error %}<p class="flash error" role="alert">{{ t(error) }}</p>{% endif %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <div class="field">
+    <label for="username">{{ t('login.username') }}</label>
+    <input id="username" name="username" value="{{ username }}" autocomplete="username" autocapitalize="none" required autofocus>
+  </div>
+  <div class="field">
+    <label for="password">{{ t('login.password') }}</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+  </div>
+  <button class="btn primary" type="submit">{{ t('login.submit') }}</button>
+</form>
+{% endblock %}

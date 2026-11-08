@@ -172,5 +172,18 @@
   "settings.ha_lists": "To-do lists",
   "settings.ha_default": "default",
   "settings.ha_no_lists": "No to-do lists (todo.*) found in Home Assistant.",
-  "settings.ha_hint": "The default list is the one last used in this browser, else HOME_ASSISTANT_TODO, else todo.shopping_list."
+  "settings.ha_hint": "The default list is the one last used in this browser, else HOME_ASSISTANT_TODO, else todo.shopping_list.",
+  "login.title": "Log in",
+  "login.username": "Username",
+  "login.password": "Password",
+  "login.submit": "Log in",
+  "login.failed": "Wrong username or password.",
+  "login.throttled": "Too many failed attempts. Try again in 15 minutes.",
+  "nav.logout": "Log out",
+  "settings.account": "Account",
+  "settings.logged_in_as": "Logged in as",
+  "settings.sessions": "Logged-in devices",
+  "settings.session_last_seen": "Last used",
+  "settings.session_current": "this device",
+  "settings.session_revoke": "Log out"
 }

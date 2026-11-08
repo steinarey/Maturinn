@@ -34,9 +34,29 @@ def _context(request: Request) -> dict:
         "fmt_date": lambda v: format_date(v, lang),
         "llm_enabled": s.llm_configured,
         "shopping_enabled": s.shopping_configured,
+        "current_user": getattr(request.state, "user", None),
     }
 
 
 templates = Jinja2Templates(
     directory=Path(__file__).parent / "templates", context_processors=[_context]
 )
+
+
+def device_name(user_agent: str) -> str:
+    """Rough 'Browser on OS' label for the logged-in devices list."""
+    ua = user_agent or ""
+    os_name = next((label for key, label in (
+        ("iPhone", "iPhone"), ("iPad", "iPad"), ("Android", "Android"), ("Windows", "Windows"),
+        ("Mac OS X", "Mac"), ("Macintosh", "Mac"), ("Linux", "Linux"),
+    ) if key in ua), "")
+    browser = next((label for key, label in (
+        ("Edg/", "Edge"), ("Firefox/", "Firefox"), ("CriOS", "Chrome"), ("Chrome/", "Chrome"),
+        ("Safari/", "Safari"),
+    ) if key in ua), "")
+    if browser and os_name:
+        return f"{browser} · {os_name}"
+    return browser or os_name or (ua[:40] if ua else "?")
+
+
+templates.env.filters["device"] = device_name

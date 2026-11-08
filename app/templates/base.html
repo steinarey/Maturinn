@@ -13,6 +13,7 @@
   <header class="top">
     <div class="wrap">
       <a class="brand" href="/">Matur<span>inn</span></a>
+      {% block nav %}
       <nav class="nav" aria-label="{{ t('nav.label') }}">
         {% set path = request.url.path %}
         <a href="/" {% if path == '/' %}aria-current="page"{% endif %}>{{ t('nav.recipes') }}</a>
@@ -20,13 +21,14 @@
         <a href="/import" {% if path.startswith('/import') %}aria-current="page"{% endif %}>{{ t('nav.import') }}</a>
         <a href="/ingredients" {% if path.startswith('/ingredients') %}aria-current="page"{% endif %}>{{ t('nav.ingredients') }}</a>
       </nav>
+      {% endblock %}
       <div class="prefs">
         {% for code, label in languages %}
           <a class="chip" href="/set-lang/{{ code }}" hreflang="{{ code }}" title="{{ label }}"
              aria-pressed="{{ 'true' if code == lang else 'false' }}">{{ code | upper }}</a>
         {% endfor %}
-        <a class="chip" href="/settings" title="{{ t('nav.settings') }}" aria-label="{{ t('nav.settings') }}"
-           {% if request.url.path == '/settings' %}aria-current="page"{% endif %}>⚙</a>
+        {% block settings_chip %}<a class="chip" href="/settings" title="{{ t('nav.settings') }}" aria-label="{{ t('nav.settings') }}"
+           {% if request.url.path == '/settings' %}aria-current="page"{% endif %}>⚙</a>{% endblock %}
         {% if theme == 'dark' %}
           <a class="chip" href="/set-theme/light" title="{{ t('theme.to_light') }}" aria-label="{{ t('theme.to_light') }}">☀</a>
         {% else %}

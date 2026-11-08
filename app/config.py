@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
     gemini_api_key: str | None = None
 
+    # Login required for everything except /login and /health. Tests turn it off.
+    auth_enabled: bool = True
+
     # Background worker that processes imports. Tests turn it off.
     worker_enabled: bool = True
 

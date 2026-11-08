@@ -282,3 +282,34 @@ class ImportDraft(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+
+
+class AppUser(Base):
+    """A household member who can log in. Created with `python -m app.users add <name>`."""
+
+    __tablename__ = "app_user"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(Text, unique=True)
+    password_hash: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    sessions: Mapped[list["UserSession"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
+
+
+class UserSession(Base):
+    """A logged-in browser. Never expires; revoked by logging out or from Settings.
+    Only a SHA-256 of the cookie token is stored."""
+
+    __tablename__ = "user_session"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("app_user.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    user_agent: Mapped[str] = mapped_column(Text, default="")
+    ip: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped[AppUser] = relationship(back_populates="sessions")

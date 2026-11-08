@@ -3,6 +3,27 @@
 {% block content %}
 <h1>{{ t('settings.title') }}</h1>
 
+{% if current_user %}
+<section class="panel">
+  <h2>{{ t('settings.account') }}</h2>
+  <form method="post" action="/logout" class="inline-form">
+    <span>{{ t('settings.logged_in_as') }} <strong>{{ current_user.username }}</strong></span>
+    <button class="btn small" type="submit">{{ t('nav.logout') }}</button>
+  </form>
+  <h3>{{ t('settings.sessions') }}</h3>
+  <ul class="sessions">
+    {% for s in sessions %}
+    <li>
+      <span><strong>{{ s.user.username }}</strong> · {{ s.user_agent | device }}{% if s.ip %} · {{ s.ip }}{% endif %}<br>
+        <span class="muted">{{ t('settings.session_last_seen') }} {{ fmt_date(s.last_seen) }}</span></span>
+      {% if s.id == current_session_id %}<span class="muted">{{ t('settings.session_current') }}</span>
+      {% else %}<form method="post" action="/settings/sessions/{{ s.id }}/revoke"><button class="btn small danger" type="submit">{{ t('settings.session_revoke') }}</button></form>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
 <section class="panel">
   <h2>{{ t('settings.shopping') }}</h2>
   {% if not configured %}

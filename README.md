@@ -6,7 +6,7 @@ FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL 17, server-rendered with Jinja2 + 
 What works now: write/edit recipes with structured ingredients, "you'll need" items and steps with photos;
 a read view for cooking; search across both languages with has/without-ingredient filters; an ingredient
 admin page for names, aliases and groups; import from a URL, pasted text or photos via an LLM; links between recipes; sending ingredients to a
-Home Assistant shopping list; dark (default) and light themes; JSON API.
+Home Assistant shopping list; dark (default) and light themes; login; JSON API.
 See [FEATURES.md](FEATURES.md) for the running list.
 
 ## Run locally
@@ -52,6 +52,8 @@ All config is environment variables (see `.env.example`).
 | `PROVIDER` | empty | `anthropic`, `openai` or `gemini`. Empty disables LLM features |
 | `LLM` | empty | Model name for that provider, e.g. `claude-haiku-5-5`, `gpt-5.1-mini`, `gemini-3.7-flash`. For Anthropic, short forms like `haiku-5.5` are expanded to `claude-haiku-5-5` |
 | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY` | empty | Only the key for the chosen `PROVIDER` is used |
+| `AUTH_ENABLED` | `true` | Login required. Only turn off on a machine nobody else can reach |
+| `FORWARDED_ALLOW_IPS` | `*` | Which proxy IPs uvicorn trusts for `X-Forwarded-For`/`-Proto`. Set to your reverse proxy's IP when exposed |
 | `WORKER_ENABLED` | `true` | Background import worker (tests turn it off) |
 | `HOME_ASSISTANT_URL` | empty | e.g. `http://192.168.1.10:8123`. With the token set, the shopping list feature is on |
 | `HOME_ASSISTANT_TOKEN` | empty | Long-lived access token |
@@ -85,14 +87,14 @@ Only the app container runs on Unraid; it uses your existing Postgres 17 server.
 4. The container runs as uid 1000. Make the photos share writable for it:
    `chown -R 1000:1000 /mnt/user/appdata/maturinn/photos` (or `99:100` and adjust the Dockerfile `useradd` if you
    prefer Unraid's `nobody:users`).
-5. Open `http://<unraid-ip>:8420`. `GET /health` returns `{"status":"ok","db":"ok"}` when the db is reachable.
+5. Create a login: `docker exec -it <container> python -m app.users add <name>`.
+6. Open `http://<unraid-ip>:8420`. `GET /health` returns `{"status":"ok","db":"ok"}` when the db is reachable.
 
 ## Choices made (open items from the brief)
 
 - **Frontend:** server-rendered Jinja2 + HTMX. Single container, no build step. `htmx` 2.0.4 and SortableJS 1.15.6
   are vendored in `app/static/` so the app works on a LAN without internet.
-- **Auth:** none in v1. Bind to your LAN. To add auth, put a reverse proxy in front (e.g. Nginx Proxy Manager with
-  access lists, or Authelia/Authentik forward auth).
+- **Auth:** built-in login (see *Login*). Sessions never expire, so each device logs in once.
 - **LLM provider:** provider-agnostic through LangChain (`langchain-anthropic`, `langchain-openai`,
   `langchain-google-genai`). Features depend only on `app/services/llm/base.py`; the provider and model come from
   `PROVIDER` and `LLM`. Tests use a scripted `FakeLLM` and never call a provider.
@@ -150,6 +152,29 @@ Steps, descriptions and ingredient notes can link to another recipe with `[label
 `[label](https://…)`). The "Tengja uppskrift" button in the write view inserts one at the cursor; selected text
 becomes the label. The read view renders them as links, and a linked recipe shows "Notað í" (used in) with the
 recipes that link to it. A link to a deleted recipe shows as plain text.
+
+## Login
+
+Every page, the JSON API and uploaded photos need a login; only `/login`, `/health` and `/static` are open. There is
+no sign-up page. Users are created on the command line:
+
+```sh
+docker compose exec app python -m app.users add steinar     # asks for a password (min 10 characters)
+docker compose exec app python -m app.users passwd steinar  # new password, logs out that user's devices
+docker compose exec app python -m app.users list
+docker compose exec app python -m app.users remove steinar
+```
+
+- **Sessions don't expire.** A login is a random token in an `HttpOnly`, `SameSite=Lax` cookie (`Secure` over https);
+  the database stores only its SHA-256. Browsers cap cookies at 400 days, so the cookie is re-issued (at most daily) as
+  it's used. A device that isn't used for 400 days has to log in again.
+- **Logging out a device:** Settings → *Logged-in devices* lists every session (user, browser, IP, last used) with a
+  log-out button, e.g. for a lost phone. Changing a password logs out all that user's devices.
+- **Password guessing:** passwords are hashed with scrypt; more than 10 failed logins from one IP in 15 minutes, or 50
+  in total, block new logins for the rest of the window. Existing sessions keep working.
+- **Behind a reverse proxy:** set `FORWARDED_ALLOW_IPS` to the proxy's IP so the app sees real client IPs and https
+  (for the `Secure` cookie flag). With the default `*`, a client could fake its IP; the global cap still applies.
+- Forms are protected from cross-site posts by the `SameSite=Lax` cookie: another site can't submit them logged in.
 
 ## Shopping list (Home Assistant)
 

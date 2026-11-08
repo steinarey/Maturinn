@@ -172,5 +172,18 @@
   "settings.ha_lists": "Verkefnalistar",
   "settings.ha_default": "sjálfgefinn",
   "settings.ha_no_lists": "Engir verkefnalistar (todo.*) fundust í Home Assistant.",
-  "settings.ha_hint": "Sjálfgefinn listi er sá sem síðast var notaður í þessum vafra, annars HOME_ASSISTANT_TODO, annars todo.shopping_list."
+  "settings.ha_hint": "Sjálfgefinn listi er sá sem síðast var notaður í þessum vafra, annars HOME_ASSISTANT_TODO, annars todo.shopping_list.",
+  "login.title": "Innskráning",
+  "login.username": "Notandanafn",
+  "login.password": "Lykilorð",
+  "login.submit": "Skrá inn",
+  "login.failed": "Rangt notandanafn eða lykilorð.",
+  "login.throttled": "Of margar misheppnaðar tilraunir. Reyndu aftur eftir 15 mínútur.",
+  "nav.logout": "Skrá út",
+  "settings.account": "Aðgangur",
+  "settings.logged_in_as": "Innskráð(ur) sem",
+  "settings.sessions": "Innskráð tæki",
+  "settings.session_last_seen": "Síðast notað",
+  "settings.session_current": "þetta tæki",
+  "settings.session_revoke": "Skrá út"
 }

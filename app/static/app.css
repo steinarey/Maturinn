@@ -252,3 +252,10 @@ dialog#shop #shop-body { padding: 18px 20px; }
 .shop-items label { display: flex; gap: 10px; align-items: baseline; padding: 6px 4px; margin: 0; cursor: pointer; font-weight: normal; }
 .shop-items input { width: 1.1em; height: 1.1em; flex: none; }
 .shop-added { margin: 8px 0 14px; }
+
+/* Login + sessions */
+.login { max-width: 360px; margin: 8vh auto 0; }
+.login h1 { margin-top: 0; }
+.login .btn { width: 100%; justify-content: center; margin-top: 6px; }
+.sessions { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.sessions li { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }

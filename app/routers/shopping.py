@@ -1,11 +1,14 @@
-"""Settings page (Home Assistant status) and "add to shopping list" from a recipe."""
+"""Settings page (account, logged-in devices, Home Assistant status) and
+"add to shopping list" from a recipe."""
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import get_session
 from app.i18n import translate
+from app.models import UserSession
 from app.services import recipes as recipe_svc
 from app.services.shopping.base import ShoppingError, ShoppingList, ShoppingListInfo
 from app.services.shopping.homeassistant import HomeAssistantTodo
@@ -34,10 +37,12 @@ def _default(lists: list[ShoppingListInfo], request: Request) -> ShoppingListInf
 
 
 @router.get("/settings", response_class=HTMLResponse)
-def settings_page(request: Request):
+def settings_page(request: Request, session: Session = Depends(get_session)):
     s = get_settings()
+    sessions = session.scalars(select(UserSession).order_by(UserSession.last_seen.desc())).all()
     ctx = {"configured": s.shopping_configured, "url": s.home_assistant_url, "lists": [], "error": None,
-           "default": None}
+           "default": None, "sessions": sessions,
+           "current_session_id": getattr(request.state, "session_id", None)}
     if s.shopping_configured:
         try:
             ha = get_shopping_list()

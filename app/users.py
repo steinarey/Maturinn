@@ -1,5 +1,7 @@
 """Manage login users from the command line.
 
+Users added here are admins: they can add the other users in the app, at /admin.
+
     python -m app.users add <username>       # asks for the password
     python -m app.users passwd <username>    # new password; logs out that user's devices
     python -m app.users remove <username>
@@ -49,8 +51,8 @@ def main(argv: list[str] | None = None) -> None:
     with get_sessionmaker()() as session:
         try:
             if args.cmd == "add":
-                user = auth_svc.create_user(session, args.username, _password(args))
-                print(f"Added {user.username}.")
+                user = auth_svc.create_user(session, args.username, _password(args), is_admin=True)
+                print(f"Added {user.username} (admin).")
             elif args.cmd == "passwd":
                 user = _user(session, args.username)
                 auth_svc.set_password(session, user, _password(args))
@@ -61,11 +63,11 @@ def main(argv: list[str] | None = None) -> None:
                 print(f"Removed {user.username}.")
             else:
                 rows = session.execute(
-                    select(AppUser.username, func.count(UserSession.id))
+                    select(AppUser.username, AppUser.is_admin, func.count(UserSession.id))
                     .outerjoin(UserSession).group_by(AppUser.id).order_by(AppUser.username)
                 ).all()
-                for name, n in rows:
-                    print(f"{name}\t{n} device(s)")
+                for name, admin, n in rows:
+                    print(f"{name}\t{'admin' if admin else 'user'}\t{n} device(s)")
                 if not rows:
                     print("No users. Add one: python -m app.users add <username>")
             session.commit()

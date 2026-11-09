@@ -9,6 +9,8 @@ from app.config import get_settings
 from app.db import get_session
 from app.i18n import translate
 from app.models import UserSession
+from app.routers.auth import PW_ERRORS
+from app.services import auth as auth_svc
 from app.services import recipes as recipe_svc
 from app.services.shopping.base import ShoppingError, ShoppingList, ShoppingListInfo
 from app.services.shopping.homeassistant import HomeAssistantTodo
@@ -39,10 +41,16 @@ def _default(lists: list[ShoppingListInfo], request: Request) -> ShoppingListInf
 @router.get("/settings", response_class=HTMLResponse)
 def settings_page(request: Request, session: Session = Depends(get_session)):
     s = get_settings()
-    sessions = session.scalars(select(UserSession).order_by(UserSession.last_seen.desc())).all()
+    user = getattr(request.state, "user", None)
+    q = select(UserSession).order_by(UserSession.last_seen.desc())
+    if user is not None and not user.is_admin:  # admins see every device, others their own
+        q = q.where(UserSession.user_id == user.id)
+    done = request.query_params.get("done")
     ctx = {"configured": s.shopping_configured, "url": s.home_assistant_url, "lists": [], "error": None,
-           "default": None, "sessions": sessions,
-           "current_session_id": getattr(request.state, "session_id", None)}
+           "default": None, "sessions": session.scalars(q).all(),
+           "current_session_id": getattr(request.state, "session_id", None),
+           "pw_error": pw if (pw := request.query_params.get("pw_error")) in PW_ERRORS else None,
+           "pw_done": done == "password", "min_password": auth_svc.MIN_PASSWORD}
     if s.shopping_configured:
         try:
             ha = get_shopping_list()

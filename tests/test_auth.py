@@ -14,7 +14,7 @@ PW = "rétt-lykilorð-123"
 def auth_on(monkeypatch, session):
     monkeypatch.setattr(get_settings(), "auth_enabled", True)
     auth_svc.throttle.reset()
-    auth_svc.create_user(session, "Steinar", PW)
+    auth_svc.create_user(session, "Steinar", PW, is_admin=True)
     yield
     auth_svc.throttle.reset()
 
@@ -134,5 +134,85 @@ def test_cli_add_and_list(session, monkeypatch, capsys):
     users.main(["add", "Gunna", "--password-stdin"])
     users.main(["list"])
     out = capsys.readouterr().out
-    assert "Added gunna." in out and "gunna\t0 device(s)" in out
-    assert auth_svc.authenticate(session, "GUNNA", PW)
+    assert "Added gunna (admin)." in out and "gunna\tadmin\t0 device(s)" in out
+    assert auth_svc.authenticate(session, "GUNNA", PW).is_admin
+
+
+# --- user management ------------------------------------------------------------
+
+def test_admin_adds_user_who_cannot_manage(auth_on, client, session):
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    login(client)
+    assert 'href="/admin"' in client.get("/settings").text
+    r = client.post("/admin/users", data={"username": "Anna", "password": "short"})
+    assert r.status_code == 400 and "minnst 10 stafir" in r.text and 'value="Anna"' in r.text
+    r = client.post("/admin/users", data={"username": "steinar", "password": PW})
+    assert r.status_code == 400 and "þegar til" in r.text
+    r = client.post("/admin/users", data={"username": "Anna", "password": PW}, follow_redirects=False)
+    assert r.headers["location"] == "/admin?done=added"
+    assert "anna" in client.get("/admin?done=added").text
+
+    anna = TestClient(app)
+    assert login(anna, "anna").status_code == 303
+    assert anna.get("/").status_code == 200
+    assert anna.get("/admin").status_code == 403
+    assert anna.post("/admin/users", data={"username": "x", "password": PW}).status_code == 403
+    settings = anna.get("/settings").text
+    assert 'href="/admin"' not in settings and "steinar" not in settings  # only her own devices
+    steinar_sess = session.query(UserSession).filter(UserSession.user.has(username="steinar")).one()
+    assert anna.post(f"/settings/sessions/{steinar_sess.id}/revoke").status_code == 404
+
+
+def test_admin_password_toggle_remove(auth_on, client, session):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.models import AppUser
+
+    login(client)
+    client.post("/admin/users", data={"username": "anna", "password": PW})
+    anna_id = session.query(AppUser).filter_by(username="anna").one().id
+    anna = TestClient(app)
+    login(anna, "anna")
+
+    # New password logs her out everywhere.
+    client.post(f"/admin/users/{anna_id}/password", data={"password": "nýtt-lykilorð-99"})
+    assert anna.get("/", follow_redirects=False).status_code == 303
+    assert login(anna, "anna", "nýtt-lykilorð-99").status_code == 303
+
+    client.post(f"/admin/users/{anna_id}/admin")
+    assert anna.get("/admin").status_code == 200
+    client.post(f"/admin/users/{anna_id}/admin")
+    assert anna.get("/admin").status_code == 403
+
+    # Can't demote or remove yourself, so there's always an admin.
+    me = session.query(AppUser).filter_by(username="steinar").one()
+    assert client.post(f"/admin/users/{me.id}/admin").status_code == 400
+    assert client.post(f"/admin/users/{me.id}/delete").status_code == 400
+
+    r = client.post(f"/admin/users/{anna_id}/delete", follow_redirects=False)
+    assert r.headers["location"] == "/admin?done=removed"
+    assert anna.get("/", follow_redirects=False).status_code == 303
+    assert session.query(AppUser).filter_by(username="anna").count() == 0
+
+
+def test_change_own_password(auth_on, client, session):
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    login(client)
+    other = TestClient(app)
+    login(other)
+    new = "annað-lykilorð-42"
+    r = client.post("/settings/password", data={"current": "rangt", "password": new, "again": new})
+    assert "Rangt lykilorð" in r.text
+    r = client.post("/settings/password", data={"current": PW, "password": new, "again": "x"},
+                    follow_redirects=False)
+    assert "pw_mismatch" in r.headers["location"]
+    r = client.post("/settings/password", data={"current": PW, "password": new, "again": new},
+                    follow_redirects=False)
+    assert r.headers["location"] == "/settings?done=password#password"
+    assert client.get("/").status_code == 200  # this device stays logged in
+    assert other.get("/", follow_redirects=False).status_code == 303  # the other one doesn't
+    assert auth_svc.authenticate(session, "steinar", new)

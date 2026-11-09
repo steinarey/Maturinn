@@ -107,11 +107,38 @@ def logout(request: Request, session: Session = Depends(get_session)):
     return response
 
 
-@router.post("/settings/sessions/{session_id}/revoke", dependencies=[Depends(require_user)])
-def revoke(session_id: int, session: Session = Depends(get_session)):
+@router.post("/settings/sessions/{session_id}/revoke")
+def revoke(session_id: int, session: Session = Depends(get_session), user=Depends(require_user)):
     row = session.get(UserSession, session_id)
-    if not row:
+    if not row or (user is not None and not user.is_admin and row.user_id != user.id):
         raise HTTPException(404)
     session.delete(row)
     session.commit()
     return RedirectResponse("/settings", status_code=303)
+
+
+PW_ERRORS = {"login.wrong_password", "admin.err_password", "settings.pw_mismatch"}
+
+
+@router.post("/settings/password")
+def change_own_password(request: Request, current: str = Form(""), password: str = Form(""),
+                        again: str = Form(""), session: Session = Depends(get_session),
+                        user=Depends(require_user)):
+    """Change your own password. Your other devices are logged out; this one stays."""
+    if user is None:
+        raise HTTPException(404)
+    error = None
+    if not auth_svc.verify_password(current, user.password_hash):
+        error = "login.wrong_password"
+    elif password != again:
+        error = "settings.pw_mismatch"
+    else:
+        try:
+            auth_svc.set_password(session, user, password, keep_session_id=request.state.session_id)
+        except auth_svc.AuthError as e:
+            error = e.key
+    if error:
+        session.rollback()
+        return RedirectResponse(f"/settings?pw_error={error}#password", status_code=303)
+    session.commit()
+    return RedirectResponse("/settings?done=password#password", status_code=303)

@@ -9,7 +9,27 @@
   <form method="post" action="/logout" class="inline-form">
     <span>{{ t('settings.logged_in_as') }} <strong>{{ current_user.username }}</strong></span>
     <button class="btn small" type="submit">{{ t('nav.logout') }}</button>
+    {% if current_user.is_admin %}<a class="btn small" href="/admin">{{ t('admin.title') }}</a>{% endif %}
   </form>
+
+  <h3 id="password">{{ t('settings.change_password') }}</h3>
+  {% if pw_error %}<p class="flash error" role="alert">{{ t(pw_error, n=min_password) }}</p>{% endif %}
+  {% if pw_done %}<p class="flash" role="status">{{ t('settings.pw_done') }}</p>{% endif %}
+  <details {% if pw_error %}open{% endif %}>
+    <summary class="btn small">{{ t('settings.change_password') }}</summary>
+    <form method="post" action="/settings/password">
+      <input type="hidden" name="username" value="{{ current_user.username }}" autocomplete="username">
+      <div class="field"><label for="pw-current">{{ t('settings.pw_current') }}</label>
+        <input id="pw-current" name="current" type="password" autocomplete="current-password" required></div>
+      <div class="field"><label for="pw-new">{{ t('admin.new_password') }}</label>
+        <input id="pw-new" name="password" type="password" autocomplete="new-password" minlength="{{ min_password }}" required>
+        <p class="muted small">{{ t('admin.min_password', n=min_password) }} {{ t('settings.pw_hint') }}</p></div>
+      <div class="field"><label for="pw-again">{{ t('settings.pw_again') }}</label>
+        <input id="pw-again" name="again" type="password" autocomplete="new-password" required></div>
+      <button class="btn primary small" type="submit">{{ t('settings.change_password') }}</button>
+    </form>
+  </details>
+
   <h3>{{ t('settings.sessions') }}</h3>
   <ul class="sessions">
     {% for s in sessions %}

@@ -17,7 +17,7 @@ Running list. Status: **done**, **partial**, **planned**.
 | Canonical ingredients | done | Names per language + aliases, groups (parent), merge, inflection-aware matching |
 | Ingredient admin page | done | `/ingredients` |
 | Search | done | Full-text (simple + english) + pg_trgm; has/without ingredient filters with groups |
-| Login | done | Users via CLI (`python -m app.users`), scrypt, never-expiring sessions, logged-in devices list with log-out, login throttling |
+| Login | done | First (admin) user via CLI (`python -m app.users`), user admin at `/admin`, own password change, scrypt, never-expiring sessions, logged-in devices list with log-out, login throttling |
 | JSON API | done | `/api/recipes` CRUD + search |
 | Recipe content translation | planned | Tables exist (`*_translation`, `is_machine`, `source_hash`); LLM on demand, cached, editable |
 | Import from URL, pasted text or images | done | Scraper (schema.org / page text) or 1–5 photos → LLM tool calls → live progress → review in write view. Optional instructions ("only the cake"). Model can search saved recipes and link to them. Provider via LangChain (`PROVIDER`, `LLM`) |
@@ -35,5 +35,5 @@ Running list. Status: **done**, **partial**, **planned**.
 - A linked sub-recipe (e.g. the jam) is linked from a step, not listed as an ingredient of the parent recipe.
 - Image imports need a vision-capable model; HEIC photos aren't supported (phones usually upload JPEG).
 - Shopping list: duplicates are matched by item name only, so "Mjólk (1 l)" on the list unchecks milk even if the recipe needs more.
-- Login: no password change or user admin in the UI (CLI only). API clients need the session cookie (no API tokens).
+- Login: API clients need the session cookie (no API tokens). No password reset by email; an admin sets a new one.
 - Import URL check resolves DNS before fetching; a DNS-rebinding host could still slip through.

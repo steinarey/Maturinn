@@ -26,7 +26,16 @@ _N, _R, _P = 2**15, 8, 1
 
 
 class AuthError(Exception):
-    pass
+    """`key` is the i18n key for showing the error in the web UI."""
+
+    def __init__(self, message: str, key: str):
+        super().__init__(message)
+        self.key = key
+
+
+def _check_password(password: str) -> None:
+    if len(password) < MIN_PASSWORD:
+        raise AuthError(f"Password must be at least {MIN_PASSWORD} characters.", "admin.err_password")
 
 
 def hash_password(password: str) -> str:
@@ -55,26 +64,26 @@ def normalize_username(name: str) -> str:
     return name.strip().casefold()
 
 
-def create_user(session: Session, username: str, password: str) -> AppUser:
+def create_user(session: Session, username: str, password: str, is_admin: bool = False) -> AppUser:
     username = normalize_username(username)
     if not username:
-        raise AuthError("Username is empty.")
-    if len(password) < MIN_PASSWORD:
-        raise AuthError(f"Password must be at least {MIN_PASSWORD} characters.")
+        raise AuthError("Username is empty.", "admin.err_username")
+    _check_password(password)
     if session.scalar(select(AppUser).where(AppUser.username == username)):
-        raise AuthError(f"User {username!r} already exists.")
-    user = AppUser(username=username, password_hash=hash_password(password))
+        raise AuthError(f"User {username!r} already exists.", "admin.err_exists")
+    user = AppUser(username=username, password_hash=hash_password(password), is_admin=is_admin)
     session.add(user)
     session.flush()
     return user
 
 
-def set_password(session: Session, user: AppUser, password: str, end_sessions: bool = True) -> None:
-    if len(password) < MIN_PASSWORD:
-        raise AuthError(f"Password must be at least {MIN_PASSWORD} characters.")
+def set_password(session: Session, user: AppUser, password: str, end_sessions: bool = True,
+                 keep_session_id: int | None = None) -> None:
+    """New password. Logs out the user's devices, except `keep_session_id` (the one changing it)."""
+    _check_password(password)
     user.password_hash = hash_password(password)
     if end_sessions:
-        user.sessions.clear()
+        user.sessions[:] = [s for s in user.sessions if s.id == keep_session_id]
 
 
 def authenticate(session: Session, username: str, password: str) -> AppUser | None:

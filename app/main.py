@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
-from app.routers import api, auth, health, imports, ingredients, pages, shopping
+from app.routers import admin, api, auth, health, imports, ingredients, pages, shopping
 from app.routers.auth import LoginRequired, login_required_handler, reissue_cookie_middleware, require_user
 from app.worker import Worker
 
@@ -34,7 +34,7 @@ app.middleware("http")(reissue_cookie_middleware)
 app.include_router(health.router)
 app.include_router(auth.router)
 guarded = [Depends(require_user)]
-for r in (api.router, ingredients.router, imports.router, shopping.router, pages.router):
+for r in (admin.router, api.router, ingredients.router, imports.router, shopping.router, pages.router):
     app.include_router(r, dependencies=guarded)
 
 

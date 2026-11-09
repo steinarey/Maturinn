@@ -83,7 +83,7 @@ main { padding-block: 20px 60px; }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
 label { display: block; font-size: .9rem; color: var(--muted); margin: 0 0 4px; }
-input[type=text], input[type=number], input[type=url], input[type=search], textarea, select {
+input:not([type]), input[type=text], input[type=password], input[type=number], input[type=url], input[type=search], textarea, select {
   width: 100%; font: inherit; color: var(--text); background: var(--surface);
   border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
 }
@@ -259,3 +259,17 @@ dialog#shop #shop-body { padding: 18px 20px; }
 .login .btn { width: 100%; justify-content: center; margin-top: 6px; }
 .sessions { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .sessions li { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+/* Admin: users */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.users { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.users li { border-top: 1px solid var(--line); padding-top: 12px; }
+.users li:first-child { border-top: 0; padding-top: 0; }
+.users details { margin-top: 8px; }
+.users summary { list-style: none; display: inline-flex; cursor: pointer; }
+.users summary::-webkit-details-marker { display: none; }
+.users .inline-form input[type=password] { flex: 1 1 200px; width: auto; }
+.users .inline-form form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+label.check, label.small { display: flex; gap: 8px; align-items: center; color: var(--text); margin: 0; }
+.panel details > summary { list-style: none; display: inline-flex; cursor: pointer; margin-bottom: 10px; }
+.panel details > summary::-webkit-details-marker { display: none; }

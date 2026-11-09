@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ t('admin.title') }} · {{ t('app.name') }}{% endblock %}
+{% block content %}
+<h1>{{ t('admin.title') }}</h1>
+{% if error %}<p class="flash error" role="alert">{{ t(error, n=min_password) }}</p>{% endif %}
+{% if done %}<p class="flash" role="status">{{ t('admin.done.' ~ done) }}</p>{% endif %}
+
+<section class="panel">
+  <h2>{{ t('admin.users') }}</h2>
+  <ul class="users">
+    {% for u, devices, last_seen in rows %}
+    <li>
+      <div class="user-head">
+        <span><strong>{{ u.username }}</strong>
+          {% if u.is_admin %}<span class="badge">{{ t('admin.admin') }}</span>{% endif %}
+          {% if me and me.id == u.id %}<span class="muted">· {{ t('admin.you') }}</span>{% endif %}<br>
+          <span class="muted small">{{ t('admin.devices', n=devices) }}{% if last_seen %} · {{ t('settings.session_last_seen') }} {{ fmt_date(last_seen) }}{% endif %}</span></span>
+      </div>
+      <details>
+        <summary class="btn small">{{ t('admin.manage') }}</summary>
+        <form method="post" action="/admin/users/{{ u.id }}/password" class="inline-form">
+          <label class="visually-hidden" for="pw-{{ u.id }}">{{ t('admin.new_password') }}</label>
+          <input id="pw-{{ u.id }}" name="password" type="password" autocomplete="new-password"
+                 minlength="{{ min_password }}" placeholder="{{ t('admin.new_password') }}" required>
+          <button class="btn small" type="submit">{{ t('admin.set_password') }}</button>
+        </form>
+        <p class="muted small">{{ t('admin.password_hint') }}</p>
+        {% if not (me and me.id == u.id) %}
+        <div class="inline-form">
+          <form method="post" action="/admin/users/{{ u.id }}/admin">
+            <button class="btn small" type="submit">{{ t('admin.revoke_admin' if u.is_admin else 'admin.make_admin') }}</button>
+          </form>
+          <form method="post" action="/admin/users/{{ u.id }}/delete">
+            <label class="small"><input type="checkbox" required> {{ t('admin.confirm_remove') }}</label>
+            <button class="btn small danger" type="submit">{{ t('admin.remove') }}</button>
+          </form>
+        </div>
+        {% endif %}
+      </details>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="panel">
+  <h2>{{ t('admin.add') }}</h2>
+  <form method="post" action="/admin/users">
+    <div class="field">
+      <label for="new-username">{{ t('login.username') }}</label>
+      <input id="new-username" name="username" value="{{ username }}" autocomplete="off" autocapitalize="none" required>
+    </div>
+    <div class="field">
+      <label for="new-password">{{ t('login.password') }}</label>
+      <input id="new-password" name="password" type="password" autocomplete="new-password" minlength="{{ min_password }}" required>
+      <p class="muted small">{{ t('admin.min_password', n=min_password) }}</p>
+    </div>
+    <label class="check"><input type="checkbox" name="is_admin" value="true"> {{ t('admin.make_admin_check') }}</label>
+    <p><button class="btn primary" type="submit">{{ t('admin.add_submit') }}</button></p>
+  </form>
+</section>
+{% endblock %}

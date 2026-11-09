@@ -87,7 +87,8 @@ Only the app container runs on Unraid; it uses your existing Postgres 17 server.
 4. The container runs as uid 1000. Make the photos share writable for it:
    `chown -R 1000:1000 /mnt/user/appdata/maturinn/photos` (or `99:100` and adjust the Dockerfile `useradd` if you
    prefer Unraid's `nobody:users`).
-5. Create a login: `docker exec -it <container> python -m app.users add <name>`.
+5. Create your login (an admin): `docker exec -it <container> python -m app.users add <name>`. Add the rest of the
+   household in the app under Settings → Users.
 6. Open `http://<unraid-ip>:8420`. `GET /health` returns `{"status":"ok","db":"ok"}` when the db is reachable.
 
 ## Choices made (open items from the brief)
@@ -156,20 +157,24 @@ recipes that link to it. A link to a deleted recipe shows as plain text.
 ## Login
 
 Every page, the JSON API and uploaded photos need a login; only `/login`, `/health` and `/static` are open. There is
-no sign-up page. Users are created on the command line:
+no sign-up page. The first user is created on the command line, and users created there are **admins**:
 
 ```sh
-docker compose exec app python -m app.users add steinar     # asks for a password (min 10 characters)
+docker compose exec app python -m app.users add steinar     # admin; asks for a password (min 10 characters)
 docker compose exec app python -m app.users passwd steinar  # new password, logs out that user's devices
 docker compose exec app python -m app.users list
 docker compose exec app python -m app.users remove steinar
 ```
 
+- **Admins** manage the other users in the app: Settings → *Users* (`/admin`). Add a user (optionally as admin), set a
+  user's password (logs them out everywhere), grant or remove admin, remove a user. Admins can't demote or remove
+  themselves, so there's always one left. Other users can't open `/admin`.
+- **Own password:** everyone can change their password in Settings; their other devices are logged out.
 - **Sessions don't expire.** A login is a random token in an `HttpOnly`, `SameSite=Lax` cookie (`Secure` over https);
   the database stores only its SHA-256. Browsers cap cookies at 400 days, so the cookie is re-issued (at most daily) as
   it's used. A device that isn't used for 400 days has to log in again.
-- **Logging out a device:** Settings → *Logged-in devices* lists every session (user, browser, IP, last used) with a
-  log-out button, e.g. for a lost phone. Changing a password logs out all that user's devices.
+- **Logging out a device:** Settings → *Logged-in devices* lists sessions (user, browser, IP, last used) with a
+  log-out button, e.g. for a lost phone. Admins see every user's devices, others only their own. Changing a password logs out all that user's devices.
 - **Password guessing:** passwords are hashed with scrypt; more than 10 failed logins from one IP in 15 minutes, or 50
   in total, block new logins for the rest of the window. Existing sessions keep working.
 - **Behind a reverse proxy:** set `FORWARDED_ALLOW_IPS` to the proxy's IP so the app sees real client IPs and https

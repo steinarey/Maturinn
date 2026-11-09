@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -21,6 +22,15 @@ async def lifespan(app: FastAPI):
     if worker:
         worker.stop()
 
+
+# Our own log lines (imports, worker) go to the container log next to uvicorn's.
+_log = logging.getLogger("maturinn")
+if not _log.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(levelname)s:     %(name)s: %(message)s"))
+    _log.addHandler(_handler)
+    _log.setLevel(logging.INFO)
+    _log.propagate = False
 
 settings = get_settings()
 settings.photos_dir.mkdir(parents=True, exist_ok=True)

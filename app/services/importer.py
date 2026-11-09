@@ -9,6 +9,7 @@ the UI can show what is happening without the model writing status text.
 Nothing becomes a Recipe here: the draft opens in the write view for review.
 """
 import copy
+import logging
 from decimal import Decimal
 import ipaddress
 import socket
@@ -28,9 +29,12 @@ from app.services import search as search_svc
 from app.config import get_settings
 from app.services.llm.base import Image, LLMError, LLMProvider, StopRun, ToolCall, ToolError, ToolSpec
 
+log = logging.getLogger("maturinn.import")
+
 MAX_PAGE_BYTES = 5_000_000
 MAX_SOURCE_CHARS = 100_000
-USER_AGENT = "Mozilla/5.0 (compatible; Maturinn recipe importer)"
+# Honest name and link. Avoid the "(compatible; ...)" form: some site firewalls drop it as a fake bot.
+USER_AGENT = "Mozilla/5.0 Maturinn/1.0 (+https://github.com/steinarey/Maturinn)"
 
 
 class ImportFailed(Exception):
@@ -59,6 +63,13 @@ def _check_public(url: str) -> None:
 
 
 def fetch_page(url: str) -> str:
+    try:
+        return _fetch(url)
+    except httpx.HTTPError as e:  # refused, reset, timed out, TLS ...
+        raise ImportFailed("fetch", f"{type(e).__name__}: {e}") from e
+
+
+def _fetch(url: str) -> str:
     with httpx.Client(timeout=20, follow_redirects=False, headers={"User-Agent": USER_AGENT}) as client:
         for _ in range(6):
             _check_public(url)
@@ -334,6 +345,7 @@ def build_prompt(row: ImportDraft) -> str:
 
 def process(session: Session, row: ImportDraft, llm: LLMProvider | None) -> None:
     """Run one import to 'ready' or 'failed'. Commits as it goes."""
+    row_id, source = row.id, row.url or row.kind  # for logging, even if the session breaks
     try:
         if llm is None:
             raise ImportFailed("no_llm")
@@ -371,13 +383,15 @@ def process(session: Session, row: ImportDraft, llm: LLMProvider | None) -> None
         add_event(row, {"t": "done", "ingredients": len(d["ingredients"]), "steps": len(d["steps"])})
         session.commit()
     except ImportFailed as e:  # not a database error: keep the session's state and events
+        log.warning("import %s failed: %s %s (%s)", row_id, e.code, e.detail, source)
         row.status = "failed"
         row.error = e.detail or e.code
         add_event(row, {"t": "error", "code": e.code, "detail": e.detail})
         session.commit()
     except Exception as e:  # never leave a draft stuck mid-way
+        log.exception("import %s crashed (%s)", row_id, source)
         session.rollback()
-        row = session.get(ImportDraft, row.id)
+        row = session.get(ImportDraft, row_id)
         if row is None:
             raise
         row.status = "failed"

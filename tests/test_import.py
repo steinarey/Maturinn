@@ -136,6 +136,23 @@ def test_fetch_refuses_non_public_targets(url):
     assert e.value.code == "blocked"
 
 
+def test_connection_errors_are_fetch_failures(monkeypatch):
+    import httpx
+
+    def drop(self, *a, **kw):
+        raise httpx.RemoteProtocolError("Server disconnected without sending a response.")
+    monkeypatch.setattr(importer, "_check_public", lambda url: None)
+    monkeypatch.setattr(httpx.Client, "stream", drop)
+    with pytest.raises(importer.ImportFailed) as e:
+        importer.fetch_page("https://example.com/x")
+    assert e.value.code == "fetch" and "RemoteProtocolError" in e.value.detail
+
+
+def test_user_agent_avoids_compatible_form():
+    # Some site firewalls drop "(compatible; ...)" agents (e.g. gotteri.is).
+    assert "compatible" not in importer.USER_AGENT and "Maturinn" in importer.USER_AGENT
+
+
 # --- LangChain loop, with a scripted chat model -------------------------------------
 
 class ScriptedChat:

@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from starlette.datastructures import FormData
 
+from app import units
 from app.config import get_settings
 from app.db import get_session
 from app.i18n import format_qty, parse_qty
@@ -88,6 +89,19 @@ def read(recipe_id: int, request: Request, session: Session = Depends(get_sessio
         "rich": lambda text: link_svc.render(text, existing),
         "linked_from": link_svc.linked_from(session, recipe.id),
     })
+
+
+@router.get("/recipes/{recipe_id}/amounts")
+def amounts(recipe_id: int, request: Request, servings: int | None = None, metric: bool = False,
+            session: Session = Depends(get_session)):
+    """Ingredient amounts as text, scaled to `servings` (cups as dl/ml if `metric`). Used by the read view's scaler."""
+    recipe = recipe_svc.load(session, recipe_id)
+    if not recipe:
+        raise HTTPException(404)
+    factor = servings / recipe.servings if servings and servings > 0 and recipe.servings else 1
+    lang = request_lang(request)
+    return {str(ri.id): units.amount(ri.quantity, ri.unit, lang, factor=factor, metric=metric)
+            for ri in recipe.ingredients}
 
 
 # --- Write view ---------------------------------------------------------------

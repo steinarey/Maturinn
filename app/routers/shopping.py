@@ -83,10 +83,10 @@ def _dialog(request: Request, ctx: dict):
 
 @router.get("/recipes/{recipe_id}/shopping", response_class=HTMLResponse)
 def shopping_dialog(recipe_id: int, request: Request, servings: str | None = None, list_id: str | None = None,
-                    session: Session = Depends(get_session), sl: ShoppingList = Depends(get_shopping_list)):
+                    metric: bool = False, session: Session = Depends(get_session), sl: ShoppingList = Depends(get_shopping_list)):
     recipe = _recipe(session, recipe_id)
     n = _servings(servings)
-    ctx = {"r": recipe, "servings": n or "", "error": None}
+    ctx = {"r": recipe, "servings": n or "", "metric": metric, "error": None}
     try:
         lists = sl.lists()
         chosen = _find(lists, list_id) or _default(lists, request)
@@ -96,19 +96,19 @@ def shopping_dialog(recipe_id: int, request: Request, servings: str | None = Non
     except ShoppingError as e:
         return _dialog(request, {**ctx, "error": str(e)})
     rows = [(ing_id, item, bool(item.names & on_list))
-            for ing_id, item in shopping_items(recipe, request_lang(request), n)]
+            for ing_id, item in shopping_items(recipe, request_lang(request), n, metric)]
     return _dialog(request, {**ctx, "lists": lists, "chosen": chosen, "rows": rows})
 
 
 @router.post("/recipes/{recipe_id}/shopping", response_class=HTMLResponse)
 def shopping_add(recipe_id: int, request: Request, list_id: str = Form(...), servings: str = Form(""),
-                 item: list[int] = Form(default=[]),
+                 item: list[int] = Form(default=[]), metric: bool = Form(False),
                  session: Session = Depends(get_session), sl: ShoppingList = Depends(get_shopping_list)):
     recipe = _recipe(session, recipe_id)
     lang = request_lang(request)
     ctx = {"r": recipe, "done": True, "error": None, "added": []}
     wanted = set(item)
-    titles = [it.title for ing_id, it in shopping_items(recipe, lang, _servings(servings)) if ing_id in wanted]
+    titles = [it.title for ing_id, it in shopping_items(recipe, lang, _servings(servings), metric) if ing_id in wanted]
     if not titles:
         return _dialog(request, {**ctx, "error": "nothing"})
     try:

@@ -200,6 +200,31 @@ Setup:
 The app only calls `GET /api/states`, `todo.get_items` and `todo.add_item`. Added items are normal HA to-do changes, so
 automations can trigger on them (e.g. on the list entity's state, which is the number of open items).
 
+## Units
+
+Ingredient units come from a fixed list, stored as codes and shown in the UI language (`app/units.py`):
+
+| Code | is | en | Family |
+|---|---|---|---|
+| tsp, tbsp | tsk, msk | tsp, tbsp | spoons (5 / 15 ml) |
+| ml, dl, l | ml, dl, l | ml, dl, l | metric volume |
+| cup | bolli | cup | cups (US, 240 ml) |
+| g, kg | g, kg | g, kg | weight |
+| pc, pinch, dash, clove, can, package, slice, bunch, handful | stk, klípa, skvetta, rif, dós, pakki, sneið, búnt, handfylli | | counted, never converted |
+
+- **On save** (editor, import, API), spellings are mapped to codes (`msk`, `Tablespoons`, `T`, `tsk.`), and units we
+  don't use are converted: oz, lb, stick of butter → g; fl oz, pint, quart, gallon, cl → ml. A unit not on the list is
+  kept as written and marked with `?` in the editor.
+- **On display**, after scaling, amounts move to the friendliest unit in their family, but only when the number comes
+  out round: 3 tsk → 1 msk, ⅓ msk → 1 tsk, 10 dl → 1 l, 1500 g → 1,5 kg, 10 msk → 1,5 dl. 4 tsk stays 4 tsk (not
+  1⅓ msk), 6 msk stays 6 msk. Spoons and cups use fractions (½, ⅓, ¼); metric uses decimals.
+- Volume is never converted to weight (that needs each ingredient's density), and families don't mix: a recipe in dl
+  doesn't sprout spoons.
+- **Cups:** shown as cups. Recipes with cups get a *Cups as dl/ml* switch in the read view (off by default); it also
+  applies to the shopping list.
+- The shopping list adds amounts up within a family: 1 kg + 300 g → 1,3 kg, 2 tsk + 1 tsk → 1 msk.
+- Imports: the LLM passes units as written; the step text gets °C and cm instead of °F and inches.
+
 ## Ingredient normalization
 
 Recipe rows link to a canonical `ingredient`; names live in `ingredient_name` (per language, with aliases). When a

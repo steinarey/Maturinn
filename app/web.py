@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
 
+from app import units
 from app.config import get_settings
 from app.i18n import LANG_NAMES, format_date, format_qty, translate
 
@@ -31,6 +32,9 @@ def _context(request: Request) -> dict:
         "languages": [(code, LANG_NAMES.get(code, code)) for code in s.languages],
         "t": partial(translate, lang),
         "qty": lambda v: format_qty(v, lang),
+        "amount": lambda q, unit, **kw: units.amount(q, unit, lang, **kw),
+        "unit_label": lambda code: units.label(code, lang),
+        "unit_options": units.options(lang),
         "fmt_date": lambda v: format_date(v, lang),
         "llm_enabled": s.llm_configured,
         "shopping_enabled": s.shopping_configured,

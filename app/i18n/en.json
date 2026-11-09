@@ -217,5 +217,8 @@
   "settings.pw_hint": "Your other devices will be logged out.",
   "settings.pw_mismatch": "The new passwords don't match.",
   "settings.pw_done": "Password changed. Your other devices were logged out.",
-  "login.wrong_password": "Wrong password."
+  "login.wrong_password": "Wrong password.",
+  "read.metric": "Cups as dl/ml",
+  "recipe.unit_none": "–",
+  "recipe.unit_unknown": "Unknown unit. Pick one from the list if it fits."
 }

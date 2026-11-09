@@ -13,6 +13,7 @@ Running list. Status: **done**, **partial**, **planned**.
 | Ingredient sections | done | Named groups (e.g. Sveskjumauk / Deig) as draggable heading rows; headings in read view; import tool `start_section` |
 | Step sections | planned | Same idea for method steps (e.g. "Samsetning") |
 | Step photos | done | Upload to `PHOTOS_DIR`, resized to 2000 px + 640 px thumbnail, captions |
+| Units | done | Fixed, translated unit list; imperial converted on save; friendliest unit on display (3 tsk → 1 msk); cups → dl/ml switch |
 | Read view | done | Title → ingredients → you'll need → steps with photos; servings scaler; tap to check off; keep-screen-on |
 | Canonical ingredients | done | Names per language + aliases, groups (parent), merge, inflection-aware matching |
 | Ingredient admin page | done | `/ingredients` |
@@ -29,8 +30,7 @@ Running list. Status: **done**, **partial**, **planned**.
 ## Known gaps
 
 - Photos removed from a recipe stay on disk (no cleanup of orphaned files yet).
-- Units are free text and not translated ("stk" stays "stk" in the English UI).
-- Quantities in the read view scale linearly; no unit conversion yet.
+- No volume ↔ weight conversion (needs ingredient densities, e.g. from the nutrition data later).
 - Import drafts can't be deleted from the UI yet (route exists, no button).
 - A linked sub-recipe (e.g. the jam) is linked from a step, not listed as an ingredient of the parent recipe.
 - Image imports need a vision-capable model; HEIC photos aren't supported (phones usually upload JPEG).

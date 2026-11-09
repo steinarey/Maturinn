@@ -217,5 +217,8 @@
   "settings.pw_hint": "Önnur tæki þín verða skráð út.",
   "settings.pw_mismatch": "Nýju lykilorðin stemma ekki.",
   "settings.pw_done": "Lykilorði breytt. Önnur tæki þín voru skráð út.",
-  "login.wrong_password": "Rangt lykilorð."
+  "login.wrong_password": "Rangt lykilorð.",
+  "read.metric": "Bollar í dl/ml",
+  "recipe.unit_none": "–",
+  "recipe.unit_unknown": "Óþekkt eining. Veldu einingu af listanum ef hún passar."
 }

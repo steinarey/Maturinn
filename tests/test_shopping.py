@@ -42,7 +42,7 @@ def test_items_merge_same_ingredient_and_scale(session):
     titles = [it.title for _, it in shopping_items(recipe, "is")]
     assert titles == ["Sykur (300 g + 1 msk)", "Sveskjur (300 g)", "Salt"]
     scaled = [it.title for _, it in shopping_items(recipe, "is", servings=6)]
-    assert scaled == ["Sykur (450 g + 1,5 msk)", "Sveskjur (450 g)", "Salt"]
+    assert scaled == ["Sykur (450 g + 1½ msk)", "Sveskjur (450 g)", "Salt"]
 
 
 def test_title_name():
@@ -177,7 +177,7 @@ def test_add_selected_items_and_remember_list(shop_client, session):
     r = shop_client.post(f"/recipes/{recipe.id}/shopping",
                          data={"list_id": "Innkaup", "servings": "2", "item": ids})
     assert "Bætti 2 atriðum á listann Innkaup" in r.text
-    assert shop_client.fake.data["Innkaup"][2:] == ["Sykur (150 g + 0,5 msk)", "Sveskjur (150 g)"]
+    assert shop_client.fake.data["Innkaup"][2:] == ["Sykur (150 g + ½ msk)", "Sveskjur (150 g)"]
     assert shop_client.fake.notes == ["Úr uppskrift: Sveskjuterta"]
     assert r.cookies.get("shop_list") == "Innkaup"
     # Next time the dialog opens on that list.

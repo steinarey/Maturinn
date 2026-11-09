@@ -273,3 +273,13 @@ dialog#shop #shop-body { padding: 18px 20px; }
 label.check, label.small { display: flex; gap: 8px; align-items: center; color: var(--text); margin: 0; }
 .panel details > summary { list-style: none; display: inline-flex; cursor: pointer; margin-bottom: 10px; }
 .panel details > summary::-webkit-details-marker { display: none; }
+
+/* Units */
+select.unknown { border-color: var(--danger); }
+label.switch { display: inline-flex; gap: 8px; align-items: center; margin: 0; color: var(--text); cursor: pointer; }
+label.switch input { appearance: none; width: 2.2em; height: 1.25em; border-radius: 999px; background: var(--surface-2);
+  border: 1px solid var(--line); position: relative; cursor: pointer; flex: none; margin: 0; }
+label.switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: calc(1.25em - 6px); height: calc(1.25em - 6px);
+  border-radius: 50%; background: var(--muted); transition: transform .15s; }
+label.switch input:checked { background: var(--accent); border-color: var(--accent); }
+label.switch input:checked::after { transform: translateX(.95em); background: var(--bg); }

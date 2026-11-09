@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.models import (
     Recipe, RecipeIngredient, RecipeItem, Step, StepPhoto, Tag, TagName,
 )
+from app import units
 from app.services import ingredients as ing_svc
 from app.services import search
 
@@ -143,8 +144,7 @@ def save(session: Session, data: RecipeIn, recipe: Recipe | None = None) -> Reci
                 row.ingredient = ing
                 row.food_id = None  # different ingredient: old nutrition match is invalid
                 row.match_confidence = None
-        row.quantity = item.quantity
-        row.unit = item.unit.strip()
+        row.quantity, row.unit = units.canonical(item.quantity, item.unit)
         row.note = item.note.strip()
         row.section = item.section.strip()
         row.position = pos

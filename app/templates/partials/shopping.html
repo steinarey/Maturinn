@@ -16,6 +16,7 @@
 {% else %}
 <form hx-post="/recipes/{{ r.id }}/shopping" hx-target="#shop-body" class="shop-form">
   <input type="hidden" name="servings" value="{{ servings }}">
+  {% if metric %}<input type="hidden" name="metric" value="true">{% endif %}
   <div class="field">
     <label for="shop-list">{{ t('shop.list') }}</label>
     <select id="shop-list" name="list_id" hx-get="/recipes/{{ r.id }}/shopping" hx-include="closest form"

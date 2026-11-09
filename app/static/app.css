@@ -103,10 +103,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); outline
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
   overflow: hidden; display: flex; flex-direction: column;
 }
-.card a { color: inherit; }
+.card a { color: inherit; display: flex; flex-direction: column; height: 100%; }
 .card a:hover { text-decoration: none; }
 .card .thumb { aspect-ratio: 4/3; background: var(--surface-2); object-fit: cover; width: 100%; }
-.card .body { padding: 12px 14px; }
+.card .body { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; }
+.card .body .tags { margin-top: auto; padding-top: 10px; }
+/* No photo: a title card. Title and description fill the space, tags sit at the bottom. */
+.card.text { border-top: 3px solid var(--accent); }
+.card.text .body { padding: 16px 16px 14px; min-height: 9rem; }
+.card.text h3 { font-size: 1.3rem; line-height: 1.25; margin-bottom: 8px; }
+.card .desc { margin: 0 0 8px; color: var(--muted); font-size: .95rem; line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .card h3 { margin: 0 0 4px; font-size: 1.15rem; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 6px 0 0; }
 .tag { font-size: .8rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }

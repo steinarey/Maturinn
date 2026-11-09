@@ -168,3 +168,14 @@ def test_upload_rejects_non_image(client):
     r = client.post("/fragments/photo", data={"key": "k1"},
                     files=[("files", ("a.txt", b"not an image", "text/plain"))])
     assert r.status_code == 422
+
+
+def test_list_card_without_photo_is_a_title_card(client, session):
+    from app.services import recipes as rs
+    rs.save(session, rs.RecipeIn(title="Plokkfiskur", description="Gamli góði, með [rúgbrauði](recipe:999).",
+                                 tags=["fiskur"]))
+    session.commit()
+    page = client.get("/").text
+    card = page.split('class="card text')[1].split("</li>\n  \n")[0]
+    assert "Plokkfiskur" in card and "Gamli góði, með rúgbrauði." in card and "fiskur" in card
+    assert "thumb" not in card

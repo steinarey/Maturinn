@@ -5,12 +5,12 @@
 <ul class="cards">
   {% for r in result.recipes %}
   {% set photo = cover(r) %}
-  <li class="card">
+  <li class="card {% if not photo %}text{% endif %}">
     <a href="/recipes/{{ r.id }}">
-      {% if photo %}<img class="thumb" src="/photos/{{ thumb(photo) }}" alt="" loading="lazy">
-      {% else %}<div class="thumb" aria-hidden="true"></div>{% endif %}
+      {% if photo %}<img class="thumb" src="/photos/{{ thumb(photo) }}" alt="" loading="lazy">{% endif %}
       <div class="body">
         <h3>{{ r.title }}</h3>
+        {% if not photo and r.description %}<p class="desc">{{ plain(r.description) }}</p>{% endif %}
         {% if r.servings %}<div class="muted">{{ t('recipe.servings_n', n=r.servings) }}</div>{% endif %}
         {% if r.tags %}<ul class="tags">{% for tg in r.tags %}<li class="tag">{{ tag_name(tg, lang) }}</li>{% endfor %}</ul>{% endif %}
       </div>

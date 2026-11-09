@@ -61,7 +61,7 @@ def index(request: Request, q: str = "", has: str = "", without: str = "",
           session: Session = Depends(get_session)):
     result = search_svc.search(session, q, _split(has), _split(without))
     ctx = {"result": result, "q": q, "has": has, "without": without,
-           "cover": recipe_svc.cover_photo, "thumb": photo_svc.thumb_path,
+           "cover": recipe_svc.cover_photo, "thumb": photo_svc.thumb_path, "plain": link_svc.plain,
            "tag_name": recipe_svc.tag_name}
     name = "partials/results.html" if request.headers.get("hx-request") else "index.html"
     return templates.TemplateResponse(request, name, ctx)

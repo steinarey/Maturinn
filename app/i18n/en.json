@@ -220,5 +220,6 @@
   "login.wrong_password": "Wrong password.",
   "read.metric": "Cups as dl/ml",
   "recipe.unit_none": "–",
-  "recipe.unit_unknown": "Unknown unit. Pick one from the list if it fits."
+  "recipe.unit_unknown": "Unknown unit. Pick one from the list if it fits.",
+  "read.linked": "Linked recipes"
 }

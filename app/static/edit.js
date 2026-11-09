@@ -10,6 +10,19 @@
   };
   window.addEventListener('load', () => initSortable(document));
 
+  // Enter in a text field shouldn't save the recipe; only the save button does. Block just the
+  // submit that Enter triggers (same task as the keypress), so Enter still picks a suggestion.
+  let enterPressed = false;
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.matches('#recipe-form input')) {
+      enterPressed = true;
+      setTimeout(() => { enterPressed = false; }, 0);
+    }
+  });
+  document.addEventListener('submit', e => {
+    if (e.target.id === 'recipe-form' && enterPressed) e.preventDefault();
+  });
+
   document.addEventListener('click', e => {
     const remove = e.target.closest('.remove');
     if (remove) { remove.closest('.row').remove(); return; }

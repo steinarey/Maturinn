@@ -53,6 +53,13 @@ def existing_ids(session: Session, ids: set[int]) -> set[int]:
     return set(session.execute(select(Recipe.id).where(Recipe.id.in_(ids))).scalars())
 
 
+def recipes(session: Session, ids: set[int]) -> list[Recipe]:
+    """The recipes with these ids, by title (e.g. the ones a recipe links to)."""
+    if not ids:
+        return []
+    return list(session.execute(select(Recipe).where(Recipe.id.in_(ids)).order_by(Recipe.title)).scalars())
+
+
 def linked_from(session: Session, recipe_id: int) -> list[Recipe]:
     """Recipes whose text links to this one."""
     pattern = f"%(recipe:{recipe_id})%"

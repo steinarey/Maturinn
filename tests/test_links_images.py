@@ -48,6 +48,10 @@ def test_read_view_renders_links_and_backlinks(client, session):
     page = client.get(f"/recipes/{cake.id}").text
     assert f'<a class="rlink" href="/recipes/{jam.id}">sveskjumaukinu</a>' in page
     assert f'<a class="rlink" href="/recipes/{jam.id}">mauk</a>' in page
+    # Listed once at the top, by title.
+    top = page.split('class="linked"')[1].split("</p>")[0]
+    assert "Tengdar uppskriftir:" in top and top.count(f'href="/recipes/{jam.id}">Sveskjumauk</a>') == 1
+    assert 'class="linked"' not in client.get(f"/recipes/{jam.id}").text
     jam_page = client.get(f"/recipes/{jam.id}").text
     assert "Notað í" in jam_page and f'href="/recipes/{cake.id}">Sveskjuterta</a>' in jam_page
 

@@ -220,5 +220,6 @@
   "login.wrong_password": "Rangt lykilorð.",
   "read.metric": "Bollar í dl/ml",
   "recipe.unit_none": "–",
-  "recipe.unit_unknown": "Óþekkt eining. Veldu einingu af listanum ef hún passar."
+  "recipe.unit_unknown": "Óþekkt eining. Veldu einingu af listanum ef hún passar.",
+  "read.linked": "Tengdar uppskriftir"
 }

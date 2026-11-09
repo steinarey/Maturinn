@@ -27,6 +27,10 @@
     <p class="muted">{{ t('read.written_in.' ~ r.original_lang) }}</p>
   {% endif %}
   {% if r.description %}<p class="desc">{{ rich(r.description) }}</p>{% endif %}
+  {% if linked_to %}
+  <p class="linked">{{ t('read.linked') }}:
+    {% for o in linked_to %}<a href="/recipes/{{ o.id }}">{{ o.title }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</p>
+  {% endif %}
 
   <div class="cols {% if r.ingredients or r.items %}has-side{% endif %}">
     {% if r.ingredients or r.items %}

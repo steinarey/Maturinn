@@ -82,8 +82,13 @@ Only the app container runs on Unraid; it uses your existing Postgres 17 server.
    - Repository: `maturinn:latest` (or your registry path)
    - Network: bridge, port `8000` → host port of your choice (e.g. `8420`)
    - Path: container `/data/photos` → host `/mnt/user/appdata/maturinn/photos`
-   - Variables: `DATABASE_URL=postgresql://maturinn:…@<pg-host>:5432/maturinn`, optionally `DB_SCHEMA`, `DEFAULT_LANG`,
-     the LLM variables and the `HOME_ASSISTANT_*` variables
+   - Settings, either way:
+     - **A `.env` file (simplest):** copy `.env.example` to `/mnt/user/appdata/maturinn/.env`, fill it in, and add a
+       Path: container `/app/.env` → host `/mnt/user/appdata/maturinn/.env`, access mode *Read Only*. The app reads
+       it at startup, like it does locally; edit the file and restart the container to change settings. The image
+       itself never contains `.env`, so keys stay out of anything you push to a registry.
+     - **Or Variables** in the template: `DATABASE_URL=postgresql://maturinn:…@<pg-host>:5432/maturinn`, optionally
+       `DB_SCHEMA`, `DEFAULT_LANG`, the LLM variables and the `HOME_ASSISTANT_*` variables. These override `.env`.
 4. The container runs as uid 1000. Make the photos share writable for it:
    `chown -R 1000:1000 /mnt/user/appdata/maturinn/photos` (or `99:100` and adjust the Dockerfile `useradd` if you
    prefer Unraid's `nobody:users`).

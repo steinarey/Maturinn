@@ -87,6 +87,7 @@ def read(recipe_id: int, request: Request, session: Session = Depends(get_sessio
     return templates.TemplateResponse(request, "recipe_read.html", {
         "r": recipe, "tag_name": recipe_svc.tag_name, "thumb": photo_svc.thumb_path,
         "rich": lambda text: link_svc.render(text, existing),
+        "linked_to": link_svc.recipes(session, existing - {recipe.id}),
         "linked_from": link_svc.linked_from(session, recipe.id),
     })
 

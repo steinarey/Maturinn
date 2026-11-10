@@ -87,7 +87,7 @@ class SearchResult:
 
 
 def search(session: Session, q: str = "", has: list[str] | None = None,
-           without: list[str] | None = None, limit: int = 200) -> SearchResult:
+           without: list[str] | None = None, limit: int = 200, category: str | None = None) -> SearchResult:
     has = [h for h in (has or []) if h.strip()]
     without = [w for w in (without or []) if w.strip()]
     where, params, rank = [], {}, ["0.0::float"]
@@ -108,6 +108,10 @@ def search(session: Session, q: str = "", has: list[str] | None = None,
         where.append("(" + " OR ".join(alts) + ")")
         rank += [f"ts_rank(s.doc_simple, to_tsquery('simple', :p{i}))",
                  f"ts_rank(s.doc_english, plainto_tsquery('english', :w{i}))"]
+
+    if category:
+        params["cat"] = category
+        where.append("r.category = :cat")
 
     for i, name in enumerate(has):
         ids = ing_svc.match_for_filter(session, name)

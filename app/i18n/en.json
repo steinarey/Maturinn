@@ -221,5 +221,8 @@
   "read.metric": "Cups as dl/ml",
   "recipe.unit_none": "–",
   "recipe.unit_unknown": "Unknown unit. Pick one from the list if it fits.",
-  "read.linked": "Linked recipes"
+  "read.linked": "Linked recipes",
+  "recipe.category": "Category",
+  "recipe.category_none": "No category",
+  "search.all_categories": "All categories"
 }

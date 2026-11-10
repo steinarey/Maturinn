@@ -9,6 +9,7 @@
     <a href="/recipes/{{ r.id }}">
       {% if photo %}<img class="thumb" src="/photos/{{ thumb(photo) }}" alt="" loading="lazy">{% endif %}
       <div class="body">
+        {% if r.category %}<div class="cat">{{ category_label(r.category) }}</div>{% endif %}
         <h3>{{ r.title }}</h3>
         {% if not photo and r.description %}<p class="desc">{{ plain(r.description) }}</p>{% endif %}
         {% if r.servings %}<div class="muted">{{ t('recipe.servings_n', n=r.servings) }}</div>{% endif %}
@@ -18,7 +19,7 @@
   </li>
   {% endfor %}
 </ul>
-{% elif q or has or without %}
+{% elif q or has or without or category %}
   <p class="muted">{{ t('search.none') }}</p>
 {% else %}
   <p class="muted">{{ t('list.empty') }} <a href="/recipes/new">{{ t('list.add_first') }}</a></p>

@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from app import categories
 from app.db import get_session
 from app.models import Recipe
 from app.services import recipes as recipe_svc
@@ -12,10 +13,12 @@ router = APIRouter(prefix="/api")
 
 @router.get("/recipes")
 def list_recipes(q: str = "", has: list[str] = Query(default=[]),
-                 without: list[str] = Query(default=[]), session: Session = Depends(get_session)):
-    result = search_svc.search(session, q, has, without)
+                 without: list[str] = Query(default=[]), category: str = "",
+                 session: Session = Depends(get_session)):
+    result = search_svc.search(session, q, has, without, category=categories.clean(category) or None)
     return {
-        "recipes": [{"id": r.id, "title": r.title, "original_lang": r.original_lang} for r in result.recipes],
+        "recipes": [{"id": r.id, "title": r.title, "category": r.category, "original_lang": r.original_lang}
+                    for r in result.recipes],
         "unknown_ingredients": result.unknown,
     }
 

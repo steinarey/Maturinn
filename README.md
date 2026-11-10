@@ -205,6 +205,13 @@ Setup:
 The app only calls `GET /api/states`, `todo.get_items` and `todo.add_item`. Added items are normal HA to-do changes, so
 automations can trigger on them (e.g. on the list entity's state, which is the number of open items).
 
+## Categories
+
+A recipe can have one category (optional): Morgunmatur, Kvöldmatur, Meðlæti, Snarl, Bakkelsi, Eftirréttur, Drykkur,
+Grunnuppskriftir (sauces, jams, doughs used in other recipes). Set it in the editor; imports suggest one. Filter by it
+on the front page, or `GET /api/recipes?category=baking`. Stored as a code (`dinner`, `baking`, ...); the list lives in
+`app/categories.py`, so adding one needs no migration.
+
 ## Units
 
 Ingredient units come from a fixed list, stored as codes and shown in the UI language (`app/units.py`):

@@ -13,6 +13,7 @@
     {% if r.ingredients | selectattr('unit', 'equalto', 'cup') | first %}
     <label class="switch"><input type="checkbox" id="metric" name="metric" value="1" role="switch"> {{ t('read.metric') }}</label>
     {% endif %}
+    {% if r.category %}<a class="cat" href="/?category={{ r.category }}">{{ category_label(r.category) }}</a>{% endif %}
     {% if r.tags %}<ul class="tags">{% for tg in r.tags %}<li class="tag"><a href="/?q={{ tag_name(tg, lang) | urlencode }}">{{ tag_name(tg, lang) }}</a></li>{% endfor %}</ul>{% endif %}
     <span class="actions" style="margin-left:auto">
       <button class="btn small" type="button" id="wake" hidden>{{ t('read.keep_awake') }}</button>

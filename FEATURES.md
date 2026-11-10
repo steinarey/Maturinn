@@ -13,6 +13,7 @@ Running list. Status: **done**, **partial**, **planned**.
 | Ingredient sections | done | Named groups (e.g. Sveskjumauk / Deig) as draggable heading rows; headings in read view; import tool `start_section` |
 | Step sections | planned | Same idea for method steps (e.g. "Samsetning") |
 | Step photos | done | Upload to `PHOTOS_DIR`, resized to 2000 px + 640 px thumbnail, captions |
+| Categories | done | One optional category per recipe (fixed, translated list); filter in search and API; import suggests one |
 | Units | done | Fixed, translated unit list; imperial converted on save; friendliest unit on display (3 tsk → 1 msk); cups → dl/ml switch |
 | Read view | done | Title → ingredients → you'll need → steps with photos; servings scaler; tap to check off; keep-screen-on |
 | Canonical ingredients | done | Names per language + aliases, groups (parent), merge, inflection-aware matching |

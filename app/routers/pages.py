@@ -8,7 +8,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from starlette.datastructures import FormData
 
-from app import units
+from app import categories, units
 from app.config import get_settings
 from app.db import get_session
 from app.i18n import format_qty, parse_qty
@@ -57,10 +57,11 @@ def set_theme(theme: str, request: Request):
 # --- List and search ----------------------------------------------------------
 
 @router.get("/", response_class=HTMLResponse)
-def index(request: Request, q: str = "", has: str = "", without: str = "",
+def index(request: Request, q: str = "", has: str = "", without: str = "", category: str = "",
           session: Session = Depends(get_session)):
-    result = search_svc.search(session, q, _split(has), _split(without))
-    ctx = {"result": result, "q": q, "has": has, "without": without,
+    category = categories.clean(category) or ""
+    result = search_svc.search(session, q, _split(has), _split(without), category=category or None)
+    ctx = {"result": result, "q": q, "has": has, "without": without, "category": category,
            "cover": recipe_svc.cover_photo, "thumb": photo_svc.thumb_path, "plain": link_svc.plain,
            "tag_name": recipe_svc.tag_name}
     name = "partials/results.html" if request.headers.get("hx-request") else "index.html"
@@ -115,7 +116,7 @@ def form_from_input(data: recipe_svc.RecipeIn, lang: str) -> dict:
     """View model for the edit template. Quantities shown in the UI locale."""
     return {
         "title": data.title, "description": data.description,
-        "servings": data.servings or "", "original_lang": data.original_lang,
+        "servings": data.servings or "", "category": data.category or "", "original_lang": data.original_lang,
         "source_url": data.source_url or "", "tags": ", ".join(data.tags),
         "ingredients": ingredient_rows(data.ingredients, lang),
         "items": [{"id": i.id or "", "name": i.name} for i in data.items],
@@ -139,7 +140,7 @@ def ingredient_rows(ingredients: list[recipe_svc.IngredientIn], lang: str) -> li
 
 def blank_form(lang: str) -> dict:
     return {
-        "title": "", "description": "", "servings": "", "original_lang": lang, "source_url": "",
+        "title": "", "description": "", "servings": "", "category": "", "original_lang": lang, "source_url": "",
         "tags": "", "ingredients": [{"kind": "ing", "id": "", "qty": "", "unit": "", "name": "", "note": ""}],
         "items": [], "steps": [{"key": _key(), "id": "", "text": "", "photos": []}],
     }
@@ -170,7 +171,8 @@ def parse_form(form: FormData) -> tuple[dict, recipe_svc.RecipeIn | None, dict[s
         steps.append({"key": key, "id": sid, "text": txt, "photos": photos})
     vm = {
         "title": form.get("title", ""), "description": form.get("description", ""),
-        "servings": form.get("servings", ""), "original_lang": form.get("original_lang", "is"),
+        "servings": form.get("servings", ""), "category": form.get("category", ""),
+        "original_lang": form.get("original_lang", "is"),
         "source_url": form.get("source_url", ""), "tags": form.get("tags", ""),
         "ingredients": ings, "items": items, "steps": steps,
     }
@@ -202,6 +204,7 @@ def parse_form(form: FormData) -> tuple[dict, recipe_svc.RecipeIn | None, dict[s
         data = recipe_svc.RecipeIn(
             title=vm["title"], description=vm["description"],
             servings=int(servings) if servings.isdigit() else None,
+            category=vm["category"] or None,
             original_lang=vm["original_lang"], source_url=vm["source_url"],
             tags=_split(vm["tags"]), ingredients=parsed_ings,
             items=[recipe_svc.ItemIn(id=int(i["id"]) if i["id"].isdigit() else None, name=i["name"])

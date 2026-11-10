@@ -7,6 +7,15 @@
          aria-label="{{ t('search.label') }}" autocomplete="off">
   <div class="filters">
     <div>
+      <label for="category">{{ t('recipe.category') }}</label>
+      <select id="category" name="category">
+        <option value="">{{ t('search.all_categories') }}</option>
+        {% for code, label in category_options %}
+        <option value="{{ code }}" {% if code == category %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
       <label for="has">{{ t('search.has') }}</label>
       <input type="text" id="has" name="has" value="{{ has }}" placeholder="{{ t('search.has_hint') }}">
     </div>

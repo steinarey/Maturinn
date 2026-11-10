@@ -20,7 +20,8 @@ import trafilatura
 from recipe_scrapers import scrape_html
 from sqlalchemy.orm import Session
 
-from app import units
+from app import categories, units
+from app.categories import CATEGORIES
 from app.i18n import parse_qty
 from app.models import ImportDraft
 from app.services import ingredients as ing_svc
@@ -134,11 +135,16 @@ def _obj(props: dict, required: list[str]) -> dict:
 
 
 TOOLS = [
-    ToolSpec("set_details", "Set the recipe's title, description, servings, language and tags. Call once, first.",
+    ToolSpec("set_details", "Set the recipe's title, description, servings, category, language and tags. "
+             "Call once, first.",
              _obj({
                  "title": {"type": "string"},
                  "description": {"type": "string", "description": "One or two sentences, from the source. Empty if none."},
                  "servings": {"type": ["integer", "null"], "description": "Number of portions, or null if unknown."},
+                 "category": {"type": ["string", "null"], "enum": [*CATEGORIES, None],
+                              "description": "What kind of dish: breakfast, dinner (main courses), side (side dish), "
+                                             "snack, baking (cakes, cookies, bread), dessert, drink, basics "
+                                             "(sauces, jams, doughs, stocks used in other recipes). Null if unsure."},
                  "language": {"type": "string", "enum": ["is", "en"],
                               "description": "Language the source recipe is written in."},
                  "tags": {"type": "array", "items": {"type": "string"},
@@ -209,7 +215,7 @@ a step, linked if it exists as a saved recipe)."""
 
 
 def blank_draft() -> dict:
-    return {"title": "", "description": "", "servings": None, "original_lang": "is", "source_url": None,
+    return {"title": "", "description": "", "servings": None, "category": None, "original_lang": "is", "source_url": None,
             "tags": [], "ingredients": [], "items": [], "steps": []}
 
 
@@ -234,6 +240,7 @@ class DraftBuilder:
             servings = a.get("servings")
             self.state.update(title=title, description=str(a.get("description") or "").strip(),
                               servings=int(servings) if isinstance(servings, (int, float)) and servings > 0 else None,
+                              category=categories.clean(a.get("category")),
                               original_lang=lang,
                               tags=[str(t).strip() for t in a.get("tags") or [] if str(t).strip()][:8])
             self.row.detected_lang = lang

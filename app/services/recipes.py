@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.models import (
     Recipe, RecipeIngredient, RecipeItem, Step, StepPhoto, Tag, TagName,
 )
-from app import units
+from app import categories, units
 from app.services import ingredients as ing_svc
 from app.services import search
 
@@ -50,12 +50,23 @@ class RecipeIn(BaseModel):
     title: str = Field(min_length=1)
     description: str = ""
     servings: int | None = Field(default=None, ge=1, le=1000)
+    category: str | None = None  # code from app/categories.py
     original_lang: Lang = "is"
     source_url: str | None = None
     tags: list[str] = []
     ingredients: list[IngredientIn] = []
     items: list[ItemIn] = []
     steps: list[StepIn] = []
+
+    @field_validator("category", mode="before")
+    @classmethod
+    def _category(cls, v):
+        if v is None or not str(v).strip():
+            return None
+        code = categories.clean(str(v))
+        if code is None:
+            raise ValueError(f"unknown category; one of {', '.join(categories.CATEGORIES)}")
+        return code
 
     @field_validator("title")
     @classmethod
@@ -119,6 +130,7 @@ def save(session: Session, data: RecipeIn, recipe: Recipe | None = None) -> Reci
     recipe.title = data.title
     recipe.description = data.description.strip()
     recipe.servings = data.servings
+    recipe.category = data.category
     recipe.original_lang = lang
     recipe.source_url = (data.source_url or "").strip() or None
     recipe.updated_at = func.now()  # child-only edits must bump it too
@@ -187,6 +199,7 @@ def to_input(recipe: Recipe) -> RecipeIn:
         title=recipe.title,
         description=recipe.description,
         servings=recipe.servings,
+        category=recipe.category,
         original_lang=lang,
         source_url=recipe.source_url,
         tags=[tag_name(t, lang) for t in recipe.tags],
